@@ -1,0 +1,50 @@
+{
+  "nodes": [
+    {
+      "id": "subnet-public",
+      "type": "subnet",
+      "properties": {
+        "public_ip_on_launch": true,
+        "cidr": "10.0.1.0/24",
+        "internet_gateway_attached": true
+      }
+    },
+    {
+      "id": "instance-app-01",
+      "type": "ec2_instance",
+      "properties": {
+        "name": "AppServer",
+        "iam_role": "arn:aws:iam::123456789012:role/S3FullAccessRole"
+      }
+    },
+    {
+      "id": "s3-sensitive-data",
+      "type": "s3_bucket",
+      "properties": {
+        "name": "company-confidential-docs",
+        "encryption": "AES256"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "instance-app-01",
+      "to": "subnet-public",
+      "type": "contained_in"
+    },
+    {
+      "from": "instance-app-01",
+      "to": "s3-sensitive-data",
+      "type": "has_access",
+      "context": "Full S3 Access via IAM Role"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-01",
+      "name": "Toxic Combination: Public Exposure + S3 Full Access",
+      "severity": "CRITICAL",
+      "description": "The instance 'instance-app-01' is in a public subnet and has full access to S3. If compromised, an attacker can exfiltrate all data from S3 buckets."
+    }
+  ]
+}
