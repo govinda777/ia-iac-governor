@@ -3,35 +3,39 @@ from crewai import Task
 class GovernanceTasks:
     def generation_task(self, agent, user_intent):
         return Task(
-            description=f"""Generate Terraform HCL code for the following intent: {user_intent}.
-            Ensure you use proper tags (CostCenter, Project) and security defaults (encryption, private access).""",
-            expected_output="A valid Terraform HCL code block.",
+            description=f"""Create Terraform HCL for: {user_intent}.
+            Steps:
+            1. Use NetworkInventoryTool if networking is needed.
+            2. Follow security best practices (encryption, private).
+            3. Apply mandatory tags (CostCenter, Project).
+            4. Add permissions_boundary to IAM Roles.""",
+            expected_output="A complete and valid Terraform HCL code block.",
             agent=agent
         )
 
-    def audit_task(self, agent, generated_code, security_graph_context):
+    def audit_task(self, agent, hcl_context):
         return Task(
-            description=f"""Review the following Terraform code:
-            {generated_code}
+            description=f"""Audit the following HCL code:
+            {hcl_context}
 
-            Also, consider the Security Graph context:
-            {security_graph_context}
-
-            Validate if there are any OPA policy violations or toxic combinations.
-            If violations exist, specify exactly what needs to be changed.""",
-            expected_output="An audit report with 'APPROVED' or 'DENIED' status and detailed recommendations.",
+            Steps:
+            1. Estimate cost using CloudCostEstimatorTool.
+            2. Convert HCL intent to a mock Plan JSON (simulated).
+            3. Run OPAVerifierTool with the Plan JSON and Cost.
+            4. If DENIED, explain precisely why.""",
+            expected_output="An audit report (APPROVED or DENIED) with recommendations.",
             agent=agent
         )
 
-    def remediation_task(self, agent, audit_report, original_code):
+    def remediation_task(self, agent, drift_context, original_hcl):
         return Task(
-            description=f"""Based on the audit report:
-            {audit_report}
+            description=f"""A drift was detected:
+            {drift_context}
 
-            Correct the original Terraform code:
-            {original_code}
+            Original HCL:
+            {original_hcl}
 
-            Ensure all security violations are fixed while maintaining the original intent.""",
-            expected_output="The corrected Terraform HCL code.",
+            Generate the corrective Terraform HCL to restore the desired state and fix security gaps.""",
+            expected_output="Corrective Terraform HCL code.",
             agent=agent
         )

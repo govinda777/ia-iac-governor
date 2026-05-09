@@ -4,39 +4,38 @@ Esta Prova de Conceito (PoC) demonstra como a Inteligência Artificial (IA) pode
 
 ## 🚀 Visão Geral
 
-A solução utiliza um framework de **Multi-Agentes (CrewAI)** para simular o ciclo de vida de criação e auditoria de infraestrutura (IaC). O diferencial desta PoC é a integração entre políticas rígidas (**Open Policy Agent - OPA**) e análise de contexto (**Security Graph**).
+A solução utiliza um framework de **Multi-Agentes (CrewAI)** para simular o ciclo de vida de criação e auditoria de infraestrutura (IaC). O diferencial desta PoC é a integração entre políticas rígidas (**Open Policy Agent - OPA**), estimativa de custos e análise de contexto (**Security Graph**).
 
 ### Componentes Principais:
-1.  **Agente Arquiteto:** Gera código Terraform baseado na intenção do usuário.
-2.  **Agente Auditor:** Valida o código contra políticas OOTB (Rego) e interpreta erros.
-3.  **Agente Sentinel:** Analisa o ambiente (Grafo de Segurança) em busca de "Combinações Tóxicas".
-4.  **OPA (Open Policy Agent):** Atua como a "âncora da verdade" para conformidade técnica.
+1.  **Agente Arquiteto:** Gera código Terraform baseado na intenção do usuário e ferramentas de IPAM. Realiza a auto-remediação.
+2.  **Agente Auditor:** Valida o código contra políticas Rego (Segurança e FinOps) e interpreta erros.
+3.  **Agente Sentinel:** Analisa o ambiente em busca de "Combinações Tóxicas" e detecta Drifts (ClickOps).
+4.  **OPA (Open Policy Agent):** A âncora da verdade para conformidade técnica e financeira.
 
 ---
 
-## 🛠️ Especificações
+## 🛠️ Casos de Uso Implementados
 
-### Funcionais
-- **RF01:** Conversão de linguagem natural em código Terraform (HCL).
-- **RF02:** Injeção automática de guardrails (Criptografia, Tags, Public Access Block).
-- **RF03:** Ciclo de reflexão: a IA corrige o próprio código se for negado pelo Auditor.
-- **RF04:** Detecção de riscos contextuais via Grafo de Segurança.
-
-### Não Funcionais
-- **RNF01:** Segurança: A IA sugere, mas o OPA garante o bloqueio final.
-- **RNF02:** Auditabilidade: Logs detalhados do "raciocínio" dos agentes.
-- **RNF03:** Extensibilidade: Fácil adição de novas regras Rego no diretório `policies/`.
+| Categoria | Caso de Uso | Problema Resolvido | Estratégia |
+| :--- | :--- | :--- | :--- |
+| **PCI-DSS** | Criptografia Mandatória | Vazamento de dados em repouso | OPA + Plan JSON |
+| **Networking** | IPAM Automático | Conflito de rede e sobreposição | NetworkInventoryTool |
+| **IAM** | Permissions Boundaries | Privilégios excessivos (Admin) | Injeção Automática + OPA |
+| **FinOps** | Limite de Gasto ($100) | Orçamento estourado sem aviso | CloudCostEstimatorTool + OPA |
+| **Dia 2** | Detecção de ClickOps | Alterações manuais inseguras | Drift Detection & Auto-Remediation |
 
 ---
 
 ## 📂 Estrutura do Repositório
 
-- `agents/`: Definições de agentes e tarefas (Python/CrewAI).
-- `policies/`: Políticas OOTB escritas em linguagem Rego.
-- `schema/`: Contexto do ambiente (ex: `security_graph.json`).
-- `main.py`: Orquestrador principal da PoC.
-- `simulate_poc.py`: Script de demonstração rápida (Mock Mode).
-- `requirements.txt`: Dependências do projeto.
+- `agents/`: Definições de agentes e tarefas.
+- `policies/`: Políticas Rego (PCI, FinOps, IAM).
+- `workflow/`: Ferramentas customizadas (Cost, IPAM, OPA).
+- `golden_paths/`: Módulos Terraform endurecidos.
+- `examples/`: Cenários de violação e conformidade para teste.
+- `schema/`: Contexto do ambiente (`security_graph.json`).
+- `simulate_poc.py`: Script de demonstração do ciclo de criação.
+- `simulate_drift.py`: Script de demonstração de remediação de drift.
 
 ---
 
@@ -44,49 +43,35 @@ A solução utiliza um framework de **Multi-Agentes (CrewAI)** para simular o ci
 
 ### 1. Pré-requisitos
 - Python 3.10+
-- (Opcional) Chave de API da OpenAI/Anthropic para execução real do CrewAI.
+- OPA (Open Policy Agent) instalado localmente.
 
 ### 2. Instalação
 ```bash
 pip install -r requirements.txt
+# Se necessário:
+pip install crewai crewai_tools
 ```
 
-### 3. Execução (Modo Demonstração)
-Para ver o fluxo de "raciocínio" dos agentes sem necessidade de uma chave de API:
+### 3. Execução (Demonstrações)
+Para ver o ciclo de **Criação e Auto-Correção**:
 ```bash
 python3 simulate_poc.py
 ```
 
-### 4. Execução Real (Com CrewAI)
-Edite o arquivo `main.py` para configurar sua chave de API e altere `use_mock=False`:
+Para ver o ciclo de **Detecção e Remediação de Drift**:
 ```bash
-export OPENAI_API_KEY='sua_chave_aqui'
-python3 main.py
+python3 simulate_drift.py
 ```
 
 ---
 
-## 👨‍💻 Jornadas do Usuário
+## 👨‍💻 Jornadas Demonstradas
 
-### Jornada 1: O Desenvolvedor Ágil
-O desenvolvedor solicita um recurso simples: *"Preciso de um bucket S3 para logs"*. A IA gera o código já com as tags da empresa e criptografia habilitada, economizando tempo de consulta à documentação.
+### Jornada 1: O Ciclo de Auto-Correção
+O desenvolvedor solicita um recurso (ex: RDS). O Arquiteto gera o código, mas o Auditor detecta que falta criptografia e que o custo excede o limite. O Arquiteto recebe o feedback, ajusta o recurso e reaplica, garantindo o deploy seguro sem intervenção humana.
 
-### Jornada 2: O Auditor de Segurança
-O código gerado passa por um "juiz" (OPA). Se houver uma falha (ex: porta 22 aberta), a IA não apenas bloqueia, mas **explica o porquê** e **sugere a correção exata**, educando o desenvolvedor no processo.
-
-### Jornada 3: O Sentinel (Contexto)
-A IA percebe que, embora o bucket seja privado, a Role associada à instância que o acessará tem permissões excessivas e a instância está em uma rede pública. A IA sugere o **Princípio do Menor Privilégio** automaticamente.
-
----
-
-## 📊 Tabela de Comparação
-
-| Característica | Modelo Tradicional | Modelo AI-Native (PoC) |
-| :--- | :--- | :--- |
-| **Implementação** | Revisão Manual / Tickets | Agentes de IA Autônomos |
-| **Conformidade** | Reativa (pós-deploy) | Preventiva (na geração) |
-| **Correção** | Manual pelo Dev | Auto-remediação sugerida |
-| **Contexto** | Ignorado por regras fixas | Analisado via Grafos |
+### Jornada 2: A Sentinela do Dia 2
+Uma porta SSH é aberta manualmente no console da AWS (ClickOps). O Sentinel detecta a diferença em relação ao Git, o Auditor avalia o risco como crítico e o Arquiteto gera automaticamente o HCL de correção para restaurar o estado desejado.
 
 ---
 
