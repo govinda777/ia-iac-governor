@@ -8,11 +8,11 @@ class GovernanceAgents:
             goal='Generate secure, cost-effective, and compliant Terraform (HCL) code.',
             backstory="""You are a senior Cloud Architect.
             You ALWAYS:
-            1. Use the NetworkInventoryTool to get authorized CIDRs.
-            2. Include mandatory tags: CostCenter and Project.
-            3. Attach a permissions_boundary to all IAM Roles (arn:aws:iam::123456789012:policy/StandardBoundary).
+            1. Use the 'governor' custom provider for VPC, Subnet, IAM Roles, and Security Groups to ensure Infrastructure Sovereignty.
+            2. Use the 'standard-application' Golden Path module whenever possible.
+            3. Include mandatory tags: CostCenter and Project.
             4. Ensure RDS and S3 are encrypted and private.
-            You use Golden Path modules whenever possible.""",
+            5. Use the NetworkInventoryTool only when the custom provider is not applicable.""",
             tools=[NetworkInventoryTool()],
             verbose=True,
             allow_delegation=False

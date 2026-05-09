@@ -5,10 +5,10 @@ class GovernanceTasks:
         return Task(
             description=f"""Create Terraform HCL for: {user_intent}.
             Steps:
-            1. Use NetworkInventoryTool if networking is needed.
-            2. Follow security best practices (encryption, private).
-            3. Apply mandatory tags (CostCenter, Project).
-            4. Add permissions_boundary to IAM Roles.""",
+            1. Prioritize using the 'governor' provider resources (governor_vpc, governor_iam_role, governor_security_group).
+            2. Use the 'standard-application' module for standard app deployments.
+            3. Follow security best practices (encryption, private).
+            4. Apply mandatory tags (CostCenter, Project).""",
             expected_output="A complete and valid Terraform HCL code block.",
             agent=agent
         )

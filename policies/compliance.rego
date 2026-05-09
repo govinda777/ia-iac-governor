@@ -70,3 +70,12 @@ is_authorized_cidr(cidr) if {
     allowed := input.authorized_cidrs[_]
     cidr == allowed
 }
+
+# 7. Soberania de Infraestrutura: Bloqueio de Provedores Públicos para recursos sensíveis
+deny[msg] if {
+	resource := input.plan.resource_changes[_]
+	resource.mode == "managed"
+	forbidden_types := {"aws_vpc", "aws_subnet", "aws_iam_role", "aws_security_group"}
+	forbidden_types[resource.type]
+	msg := sprintf("Soberania: O recurso %v (%v) deve ser provisionado através do Custom Provider 'governor', não diretamente via 'aws'.", [resource.address, resource.type])
+}
