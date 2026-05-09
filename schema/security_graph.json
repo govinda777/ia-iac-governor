@@ -24,6 +24,22 @@
         "name": "company-confidential-docs",
         "encryption": "AES256"
       }
+    },
+    {
+      "id": "vpc-prod",
+      "type": "vpc",
+      "properties": {
+        "name": "ProductionVPC",
+        "cidr": "10.0.0.0/16"
+      }
+    },
+    {
+      "id": "policy-boundary-standard",
+      "type": "iam_policy_boundary",
+      "properties": {
+        "name": "StandardPermissionsBoundary",
+        "arn": "arn:aws:iam::123456789012:policy/StandardBoundary"
+      }
     }
   ],
   "edges": [
@@ -37,6 +53,11 @@
       "to": "s3-sensitive-data",
       "type": "has_access",
       "context": "Full S3 Access via IAM Role"
+    },
+    {
+      "from": "subnet-public",
+      "to": "vpc-prod",
+      "type": "contained_in"
     }
   ],
   "risks": [
@@ -45,6 +66,19 @@
       "name": "Toxic Combination: Public Exposure + S3 Full Access",
       "severity": "CRITICAL",
       "description": "The instance 'instance-app-01' is in a public subnet and has full access to S3. If compromised, an attacker can exfiltrate all data from S3 buckets."
+    },
+    {
+      "id": "risk-02",
+      "name": "Missing Permissions Boundary",
+      "severity": "HIGH",
+      "description": "The IAM Role used by 'instance-app-01' does not have a Permissions Boundary attached, allowing potential privilege escalation."
     }
-  ]
+  ],
+  "inventory": {
+    "available_cidrs": [
+      "10.0.2.0/24",
+      "10.0.3.0/24",
+      "10.0.4.0/24"
+    ]
+  }
 }
