@@ -14,6 +14,7 @@ override.tf.json
 # --- OPA / Rego ---
 .opa/
 opa_execution_trace.json
+opa
 
 # --- IA e Diagnósticos ---
 *.log
