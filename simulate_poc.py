@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from workflow.tools import NetworkInventoryTool, GovernanceManagerTool
 
 def simulate_creation_flow():
@@ -70,6 +71,10 @@ resource "aws_db_instance" "alpha_db" {
     print("\n[Agente Auditor]: Re-auditando...")
     final_audit = gov_tool._run(final_hcl)
     print(f"\nResultado da Auditoria Final:\n{final_audit}")
+
+    if "VERDICT: APPROVED" not in final_audit:
+        print("\n❌ ERRO: A auditoria final deveria ter sido aprovada!")
+        sys.exit(1)
 
     print("\n" + "="*60)
     print("✅ PoC: Infraestrutura provisionada com conformidade total (Multi-Layer)!")

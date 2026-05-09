@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from workflow.tools import NetworkInventoryTool, CloudCostEstimatorTool, OPAVerifierTool
 
 def simulate_sovereignty_flow():
@@ -110,19 +111,26 @@ module "pagamentos_app" {
     )
 
     # Parsing JSON robustly
+    approved = False
     try:
         opa_out = json.loads(result_final.stdout)
         denies = opa_out.get("result", [{}])[0].get("expressions", [{}])[0].get("value", {})
         if not denies:
             print(f"Resultado da Auditoria Final: APPROVED")
+            approved = True
         else:
             print(f"Resultado da Auditoria Final: DENIED")
             print(json.dumps(denies, indent=2))
     except Exception:
         if '"result": []' in result_final.stdout or '[]' in result_final.stdout:
             print(f"Resultado da Auditoria Final: APPROVED")
+            approved = True
         else:
             print(f"Resultado da Auditoria Final: DENIED")
+
+    if not approved:
+        print("\n❌ ERRO: A auditoria de soberania deveria ter sido aprovada!")
+        sys.exit(1)
 
     print("\n" + "="*60)
     print("✅ PoC: Soberania garantida com Custom Provider!")
