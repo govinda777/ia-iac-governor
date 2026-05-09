@@ -1,0 +1,1 @@
+{"plan": {"resource_changes": [{"address": "aws_vpc.pagamentos_vpc", "mode": "managed", "type": "aws_vpc", "change": {"after": {"cidr_block": "10.0.0.0/16"}}}, {"address": "aws_iam_role.pagamentos_role", "mode": "managed", "type": "aws_iam_role", "change": {"after": {"name": "pagamentos-role"}}}]}, "estimated_cost": 20, "authorized_cidrs": ["10.0.0.0/16"]}
