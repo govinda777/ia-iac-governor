@@ -25,8 +25,16 @@ class OPAProvider(GovernanceProvider):
         try:
             # Run OPA binary
             policy_path = self.params.get("policy_path", "policies/compliance.rego")
+
+            # Find OPA binary
+            opa_bin = 'opa'
+            try:
+                subprocess.run(['opa', 'version'], capture_output=True)
+            except FileNotFoundError:
+                opa_bin = './opa'
+
             result = subprocess.run(
-                ['./opa', 'eval', '-d', policy_path, '-i', temp_file, 'data.terraform.compliance.deny'],
+                [opa_bin, 'eval', '-d', policy_path, '-i', temp_file, 'data.terraform.compliance.deny'],
                 capture_output=True, text=True
             )
 

@@ -49,6 +49,12 @@ class GovernanceManagerTool(BaseTool):
                 })
             if "aws_s3_bucket" in plan_data:
                 plan_json["resource_changes"].append({"type": "aws_s3_bucket", "address": "aws_s3_bucket.example"})
+            if "aws_vpc" in plan_data:
+                plan_json["resource_changes"].append({"type": "aws_vpc", "address": "aws_vpc.example", "mode": "managed", "change": {"after": {}}})
+            if "aws_iam_role" in plan_data:
+                plan_json["resource_changes"].append({"type": "aws_iam_role", "address": "aws_iam_role.example", "mode": "managed", "change": {"after": {}}})
+            if "aws_subnet" in plan_data:
+                plan_json["resource_changes"].append({"type": "aws_subnet", "address": "aws_subnet.example", "mode": "managed", "change": {"after": {}}})
 
             # Carry over raw plan_data for text-based checks in providers
             plan_json["raw_hcl"] = plan_data

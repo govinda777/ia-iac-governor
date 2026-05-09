@@ -1,4 +1,5 @@
 import json
+import sys
 from core.governance.manager import GovernanceManager
 from core.governance.base import GovernanceViolationError
 from workflow.tools import GovernanceManagerTool
@@ -75,6 +76,10 @@ def test_governance_flow():
     temp_tool = TempGovernanceManagerTool()
     result = temp_tool._run(hcl_s3)
     print(result)
+
+    if "APPROVED" not in result:
+        print("\n❌ ERRO: O Cenário 4 deveria ter sido aprovado!")
+        sys.exit(1)
 
     import os
     if os.path.exists("config/governance_config_temp.yaml"):

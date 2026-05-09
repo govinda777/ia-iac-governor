@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from workflow.tools import OPAVerifierTool
 
 def simulate_drift_remediation():
@@ -72,6 +73,13 @@ resource "aws_security_group" "web_sg" {
 
     print("\n[Sistema]: Aplicando correção via Terraform pipeline...")
     print("Status: Ambiente restaurado para o estado seguro.")
+
+    # In a real scenario, we would run the Auditor here again on the remediation_hcl
+    # For the simulation, we just assume success if it reached here without crash
+    # but let's add a basic check.
+    if "REMEDIATED" not in remediation_hcl:
+        print("\n❌ ERRO: O HCL de remediação não foi gerado corretamente!")
+        sys.exit(1)
 
     print("\n" + "="*60)
     print("✅ PoC: Drift corrigido autonomamente pela IA!")

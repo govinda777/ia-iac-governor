@@ -1,5 +1,6 @@
 import json
 import subprocess
+import sys
 
 def test_opa_sovereignty_policy():
     # Mock de um plano Terraform contendo tanto recursos legítimos quanto bloqueados
@@ -31,9 +32,16 @@ def test_opa_sovereignty_policy():
     with open("temp_plan.json", "w") as f:
         json.dump(mock_plan, f)
 
+    # Find OPA binary
+    opa_bin = 'opa'
+    try:
+        subprocess.run(['opa', 'version'], capture_output=True)
+    except FileNotFoundError:
+        opa_bin = './opa'
+
     # Executar OPA
     result = subprocess.run(
-        ["./opa", "eval", "-i", "temp_plan.json", "-d", "policies/compliance.rego", "data.terraform.compliance.deny"],
+        [opa_bin, "eval", "-i", "temp_plan.json", "-d", "policies/compliance.rego", "data.terraform.compliance.deny"],
         capture_output=True,
         text=True
     )
@@ -45,6 +53,7 @@ def test_opa_sovereignty_policy():
         print("✅ TESTE PASSOU: Violação de soberania detectada corretamente.")
     else:
         print("❌ TESTE FALHOU: Violação de soberania NÃO detectada.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     test_opa_sovereignty_policy()

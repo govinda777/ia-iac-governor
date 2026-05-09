@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from workflow.tools import NetworkInventoryTool, CloudCostEstimatorTool, OPAVerifierTool
 
 def simulate_sovereignty_flow():
@@ -56,8 +57,16 @@ resource "aws_iam_role" "pagamentos_role" {
         json.dump(mock_plan, f)
 
     import subprocess
+
+    # Find OPA binary
+    opa_bin = 'opa'
+    try:
+        subprocess.run(['opa', 'version'], capture_output=True)
+    except FileNotFoundError:
+        opa_bin = './opa'
+
     result = subprocess.run(
-        ["./opa", "eval", "-i", "sovereignty_plan.json", "-d", "policies/compliance.rego", "data.terraform.compliance.deny"],
+        [opa_bin, "eval", "-i", "sovereignty_plan.json", "-d", "policies/compliance.rego", "data.terraform.compliance.deny"],
         capture_output=True,
         text=True
     )
@@ -104,25 +113,32 @@ module "pagamentos_app" {
         json.dump(mock_plan_final, f)
 
     result_final = subprocess.run(
-        ["./opa", "eval", "-i", "sovereignty_plan_final.json", "-d", "policies/compliance.rego", "data.terraform.compliance.deny"],
+        [opa_bin, "eval", "-i", "sovereignty_plan_final.json", "-d", "policies/compliance.rego", "data.terraform.compliance.deny"],
         capture_output=True,
         text=True
     )
 
     # Parsing JSON robustly
+    approved = False
     try:
         opa_out = json.loads(result_final.stdout)
         denies = opa_out.get("result", [{}])[0].get("expressions", [{}])[0].get("value", {})
         if not denies:
             print(f"Resultado da Auditoria Final: APPROVED")
+            approved = True
         else:
             print(f"Resultado da Auditoria Final: DENIED")
             print(json.dumps(denies, indent=2))
     except Exception:
         if '"result": []' in result_final.stdout or '[]' in result_final.stdout:
             print(f"Resultado da Auditoria Final: APPROVED")
+            approved = True
         else:
             print(f"Resultado da Auditoria Final: DENIED")
+
+    if not approved:
+        print("\n❌ ERRO: A auditoria de soberania deveria ter sido aprovada!")
+        sys.exit(1)
 
     print("\n" + "="*60)
     print("✅ PoC: Soberania garantida com Custom Provider!")

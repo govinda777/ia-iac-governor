@@ -41,6 +41,26 @@ jobs:
         run: |
           python3 simulate_poc.py
 
+      - name: Run Drift Simulation
+        run: |
+          python3 simulate_drift.py
+
+      - name: Run Sovereignty Simulation
+        run: |
+          python3 simulate_sovereignty.py
+
+      - name: Run Pluggable Governance Tests
+        run: |
+          python3 test_pluggable_gov.py
+
+      - name: Run Custom Governance Tests
+        run: |
+          python3 test_custom_governance.py
+
+      - name: Run Examples Validation
+        run: |
+          python3 test_examples.py
+
       - name: Upload Audit Artifacts
         uses: actions/upload-artifact@v4
         with:
