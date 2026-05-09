@@ -1,3 +1,6 @@
 crewai
 litellm
 python-dotenv
+pydantic>=2.0.0
+httpx
+pyyaml

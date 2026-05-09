@@ -1,5 +1,5 @@
 from crewai import Agent
-from workflow.tools import NetworkInventoryTool, CloudCostEstimatorTool, OPAVerifierTool
+from workflow.tools import NetworkInventoryTool, GovernanceManagerTool
 
 class GovernanceAgents:
     def architect_agent(self):
@@ -12,7 +12,8 @@ class GovernanceAgents:
             2. Use the 'standard-application' Golden Path module whenever possible.
             3. Include mandatory tags: CostCenter and Project.
             4. Ensure RDS and S3 are encrypted and private.
-            5. Use the NetworkInventoryTool only when the custom provider is not applicable.""",
+            5. Use the NetworkInventoryTool only when the custom provider is not applicable.
+            6. If you receive a SUGGESTED FIX from the Auditor, apply it to your HCL code.""",
             tools=[NetworkInventoryTool()],
             verbose=True,
             allow_delegation=False
@@ -21,12 +22,13 @@ class GovernanceAgents:
     def auditor_agent(self):
         return Agent(
             role='Security and FinOps Auditor',
-            goal='Audit HCL code using OPA policies and Cost Estimation tools.',
+            goal='Audit HCL code using the Pluggable Governance Manager.',
             backstory="""You are a strict compliance officer.
-            You use the CloudCostEstimatorTool to check for budget violations ($100 limit).
-            You use the OPAVerifierTool to validate the final plan against technical guardrails (PCI, IAM, Networking).
-            You provide detailed feedback to the Architect if a plan is DENIED.""",
-            tools=[CloudCostEstimatorTool(), OPAVerifierTool()],
+            You use the GovernanceManagerTool to validate the infrastructure plan.
+            This tool runs multiple layers: Cost Estimation, OPA Policies, and Firefly AI.
+            You provide detailed feedback to the Architect if a plan is DENIED,
+            including any SUGGESTED FIX or remediation patch provided by the tool.""",
+            tools=[GovernanceManagerTool()],
             verbose=True,
             allow_delegation=True
         )

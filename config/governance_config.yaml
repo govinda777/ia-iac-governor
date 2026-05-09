@@ -1,0 +1,19 @@
+providers:
+  - name: cost
+    enabled: true
+    fail_on: CRITICAL
+    params:
+      limit: 100.0
+  - name: firefly
+    enabled: true
+    fail_on: CRITICAL
+    params:
+      api_endpoint: "https://api.firefly.ai/v1/validate"
+  - name: opa
+    enabled: true
+    fail_on: HIGH
+    params:
+      policy_path: "policies/compliance.rego"
+      authorized_cidrs:
+        - "10.0.1.0/24"
+        - "10.0.2.0/24"
