@@ -1,39 +1,39 @@
 # --- Terraform / IaC ---
-# Arquivos de estado (State) - NUNCA versionar localmente por segurança
 *.tfstate
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
-
-# Arquivos de plano (Plan) - Podem conter dados sensíveis em texto puro
 *.tfplan
 *.tfplan.json
 plan.json
-
-# Variáveis sensíveis
 *.tfvars
 *.tfvars.json
 override.tf
 override.tf.json
 
 # --- OPA / Rego ---
-# Cache de bundles e logs de execução do OPA
 .opa/
 opa_execution_trace.json
 
 # --- IA e Diagnósticos ---
-# Logs de falhas analisados pela IA (como Saturnhead ou Cloud Compass)
 *.log
 ai_analysis_report.md
 crash.log
 
 # --- Segredos e Ambiente ---
-# Arquivos de ambiente e chaves de acesso
 .env
 .envrc
 *.pem
 *.key
 credentials.json
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
 
 # --- Sistema e IDE ---
 .DS_Store
