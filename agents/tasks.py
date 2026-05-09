@@ -15,15 +15,15 @@ class GovernanceTasks:
 
     def audit_task(self, agent, hcl_context):
         return Task(
-            description=f"""Audit the following HCL code:
+            description=f"""Audit the following HCL code using GovernanceManagerTool:
             {hcl_context}
 
             Steps:
-            1. Estimate cost using CloudCostEstimatorTool.
-            2. Convert HCL intent to a mock Plan JSON (simulated).
-            3. Run OPAVerifierTool with the Plan JSON and Cost.
-            4. If DENIED, explain precisely why.""",
-            expected_output="An audit report (APPROVED or DENIED) with recommendations.",
+            1. Pass the HCL code to GovernanceManagerTool.
+            2. Analyze the report.
+            3. If DENIED or CRITICAL FAILURE, explain precisely why and list all findings.
+            4. Be sure to include any 'SUGGESTED FIX' in your report so the Architect can use it.""",
+            expected_output="An audit report (APPROVED, DENIED or CRITICAL FAILURE) with recommendations and patches.",
             agent=agent
         )
 
