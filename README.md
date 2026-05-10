@@ -81,7 +81,6 @@ O IA-IaC Governor é mapeado diretamente contra os principais frameworks de segu
 1.  **Agente Arquiteto:** Gera código HCL conforme e aplica patches de auto-remediação.
 2.  **Agente Auditor:** Orquestra o `GovernanceManager` (Custo, OPA, Segurança).
 3.  **Agente Sentinel:** Monitora o estado real e detecta drifts ou "Combinações Tóxicas".
-4.  **Governance Manager:** Motor plugável que permite ativar/desativar camadas de conformidade.
 
 ---
 
