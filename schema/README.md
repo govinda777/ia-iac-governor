@@ -2,6 +2,28 @@ O arquivo `security_graph.json` no repositório indicado define o **esquema de d
 
 Abaixo, explico os componentes desse esquema e como eles resolvem problemas complexos de segurança e auditoria:
 
+```mermaid
+graph LR
+    subgraph "Nós (Entidades)"
+    EC2[EC2 Instance]
+    S3[S3 Bucket]
+    IAM[IAM Role]
+    SG[Security Group]
+    end
+
+    subgraph "Arestas (Relacionamentos)"
+    EC2 -- "has_role" --> IAM
+    IAM -- "can_read" --> S3
+    EC2 -- "member_of" --> SG
+    SG -- "allows_ingress" --> Internet((Internet))
+    end
+
+    subgraph "Análise de Caminho Tóxico"
+    Internet -- "Attack Path" --> EC2
+    EC2 -- "Data Exfiltration" --> S3
+    end
+```
+
 ### 1. A Estrutura do Grafo: Nós e Arestas
 
 O esquema mapeia a infraestrutura seguindo o paradigma de grafos, o que permite uma visão idêntica à de um invasor:
