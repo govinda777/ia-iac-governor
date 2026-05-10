@@ -52,7 +52,6 @@ O IA-IaC Governor é mapeado diretamente contra os principais frameworks de segu
 1.  **Agente Arquiteto:** Gera código Terraform (HCL) focado em conformidade e aplica auto-remediação baseada em feedbacks.
 2.  **Agente Auditor:** O core de validação que utiliza o `GovernanceManagerTool` para rodar camadas de Custo, OPA e IA (Firefly).
 3.  **Agente Sentinel:** Monitora o estado real vs desejado, detectando alterações manuais (ClickOps) e "Combinações Tóxicas".
-4.  **Governance Manager:** Orquestrador plugável que permite ativar/desativar camadas de conformidade via configuração YAML.
 
 ---
 
