@@ -1,10 +1,41 @@
-# IA-IaC Governor: Governança de Infraestrutura AI-Native
+# IA-IaC Governor: Produto de Engenharia de Plataforma para Governança AI-Native
 
-O **IA-IaC Governor** é uma plataforma avançada de governança de infraestrutura que utiliza Inteligência Artificial para validar e auditar códigos de Infraestrutura como Código (IaC) de forma semântica, plugável e contextual. Ao contrário de ferramentas de linting estático, o Governor analisa a **intenção** do código e aplica regras de conformidade dinâmica, garantindo que a infraestrutura seja segura, econômica e resiliente por design.
+O **IA-IaC Governor** não é apenas um script de validação, mas um produto completo de **Engenharia de Plataforma**. Ele fornece guardrails inteligentes e governança semântica para Infraestrutura como Código (IaC), utilizando Inteligência Artificial para auditar e automatizar a conformidade de forma plugável e contextual.
+
+Diferente de ferramentas tradicionais, o Governor analisa a **intenção** do código e aplica políticas dinâmicas, garantindo que a infraestrutura seja segura, econômica e resiliente por design.
+
+---
+
+## 🎯 Casos de Uso e Problemas Resolvidos
+
+A plataforma valida cenários reais de governança através de múltiplas estratégias:
+
+| Categoria | Caso de Uso | Problema Resolvido | Estratégia de Governança |
+| :--- | :--- | :--- | :--- |
+| **PCI-DSS** | Criptografia Mandatória | Vazamento de dados em repouso por falta de criptografia | OPA + Análise de Plan JSON |
+| **Networking** | IPAM Automático | Conflitos de rede e sobreposição de CIDR | Custom Provider + API de Redes |
+| **FinOps** | Limite de Gasto ($100) | Orçamento estourado sem aviso prévio | OPA + Estimativa de Custo Real |
+| **Segurança** | Princípio do Privilégio Mínimo | IAM Roles excessivamente permissivas | Injeção Automática de Permissions Boundary |
+| **Dia 2** | Detecção de ClickOps | Alterações manuais inseguras via Console | Drift Detection via Agente Sentinel |
+
+---
+
+## 🏗️ Arquitetura e Stack Técnica
+
+A plataforma é construída sobre uma stack moderna e modular:
+
+*   **Núcleo IaC:** Terraform/OpenTofu.
+*   **Orquestração de IA:** CrewAI (Multi-agentes: Arquiteto, Auditor, Sentinel).
+*   **Motor de Políticas:** Open Policy Agent (OPA) com linguagem Rego.
+*   **Análise de Risco:** Cloud Security Graph para identificação de caminhos de ataque.
+
+> Para detalhes profundos sobre o funcionamento interno, veja o [**Relatório de Arquitetura**](ARCHITECTURE.md).
+
+---
 
 ## 🔄 Ciclo de Feedback Didático
 
-O projeto opera em um ciclo contínuo de validação e correção automática, garantindo que nenhum recurso seja provisionado fora dos padrões estabelecidos.
+O Governor opera em um ciclo contínuo de validação e correção automática.
 
 ```mermaid
 graph TD
@@ -22,37 +53,21 @@ graph TD
 
 ---
 
-## 🧩 Arquitetura Pluggable e Custom Providers
+## 🛡️ Soberania de Infraestrutura
 
-O diferencial técnico do IA-IaC Governor reside na sua **Arquitetura Pluggable**. Através do `GovernanceManager`, a plataforma orquestra múltiplos provedores de governança (Cost, OPA, Firefly AI) que atuam de forma coordenada.
-
-### Injeção de Esquemas de Custom Providers
-Utilizamos o conceito de **Soberania de Infraestrutura** através de Custom Providers (como o provedor `governor`).
-- **Por que IA como motor de decisão?** A IA atua como o motor ideal para analisar a intenção semântica do código. Enquanto o OPA bloqueia tipos de recursos, a IA compreende se um banco de dados *deveria* ser privado com base no contexto do projeto e na sensibilidade dos dados descritos no HCL.
-- **Transparência (Chain of Thought):** O usuário tem visibilidade total do raciocínio da IA. Cada negação é acompanhada de uma explicação lógica e um patch de remediação, eliminando o efeito "caixa preta".
+Através do uso de **Custom Providers** (ex: provedor `governor`), a plataforma implementa a Soberania de Infraestrutura.
+- Recursos sensíveis (VPC, IAM, Subnets) não são criados diretamente pelo desenvolvedor.
+- O Governor atua como um proxy que delega a criação para departamentos especialistas via API.
+- **Vantagem:** Regras corporativas são injetadas automaticamente na origem (Plan Modification).
 
 ---
 
-## 📊 Benchmarks de Certificação e Conformidade
+## 🧩 Componentes Principais
 
-O IA-IaC Governor é mapeado diretamente contra os principais frameworks de segurança e conformidade do mercado. Para cada falha detectada, a plataforma gera uma correção automática baseada no contexto.
-
-| Certificadora | Regra de Teste (Benchmark) | Como o IA-IaC Governor Resolve | Validação |
-| :--- | :--- | :--- | :--- |
-| **CIS AWS 1.4** | "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22" | A IA identifica a exposição, valida o risco via Security Graph e gera o patch de fechamento da porta. | **Pass** |
-| **AWS Foundational** | "S3 buckets should have block public access settings enabled" | O Auditor detecta a ausência de blocos de acesso público e o Arquiteto injeta o recurso `aws_s3_bucket_public_access_block`. | **Verified** |
-| **NIST SP 800-53** | "Encryption of data at rest for all storage services" | O motor plugável lê a política de criptografia mandatória e injeta o contexto de KMS no Custom Provider. | **Certified** |
-| **PCI-DSS & SOC2** | "Principle of Least Privilege for IAM Roles" | A plataforma injeta automaticamente `permissions_boundary` em todas as roles criadas via provedor `governor`. | **Compliant** |
-| **Custom Providers** | "Recurso Proprietário X deve ter Tag de Custo" | A IA consome a especificação do provider e valida a presença das tags `CostCenter` e `Project`. | **Verified** |
-
----
-
-## 🛠️ Componentes Principais
-
-1.  **Agente Arquiteto:** Gera código Terraform (HCL) focado em conformidade e aplica auto-remediação baseada em feedbacks.
-2.  **Agente Auditor:** O core de validação que utiliza o `GovernanceManagerTool` para rodar camadas de Custo, OPA e IA (Firefly).
-3.  **Agente Sentinel:** Monitora o estado real vs desejado, detectando alterações manuais (ClickOps) e "Combinações Tóxicas".
-4.  **Governance Manager:** Orquestrador plugável que permite ativar/desativar camadas de conformidade via configuração YAML.
+1.  **Agente Arquiteto:** Gera código HCL conforme e aplica patches de auto-remediação.
+2.  **Agente Auditor:** Orquestra o `GovernanceManager` (Custo, OPA, Segurança).
+3.  **Agente Sentinel:** Monitora o estado real e detecta drifts ou "Combinações Tóxicas".
+4.  **Governance Manager:** Motor plugável que permite ativar/desativar camadas de conformidade.
 
 ---
 
@@ -60,18 +75,20 @@ O IA-IaC Governor é mapeado diretamente contra os principais frameworks de segu
 
 ### 1. Pré-requisitos
 - Python 3.10+
-- [OPA (Open Policy Agent)](https://www.openpolicyagent.org/docs/latest/#1-download-opa) instalado no path ou como `./opa`.
+- [OPA (Open Policy Agent)](https://www.openpolicyagent.org/docs/latest/#1-download-opa) instalado no path.
 
 ### 2. Instalação
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Execução de Simulações
-- **Criação e Auto-Correção:** `python3 simulate_poc.py`
+### 3. Simulações
+- **POC Completa:** `python3 simulate_poc.py`
 - **Detecção de Drift:** `python3 simulate_drift.py`
-- **Validação de Exemplos:** `python3 test_examples.py`
+- **Soberania de Infra:** `python3 simulate_sovereignty.py`
 
 ---
 
-*Documentação técnica focada em credibilidade, transparência e governança moderna.*
+## 🤝 Contribuição e Caminhos Dourados (Golden Paths)
+
+Encorajamos a contribuição de novos módulos e políticas. Veja nosso [**Guia de Contribuição**](CONTRIBUTING.md) para aprender sobre como criar novos Golden Paths e participar do projeto.
