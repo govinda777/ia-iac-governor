@@ -62,6 +62,20 @@ Através do uso de **Custom Providers** (ex: provedor `governor`), a plataforma 
 
 ---
 
+## 📊 Benchmarks de Certificação e Conformidade
+
+O IA-IaC Governor é mapeado diretamente contra os principais frameworks de segurança e conformidade do mercado.
+
+| Certificadora | Regra de Teste (Benchmark) | Como o IA-IaC Governor Resolve | Validação |
+| :--- | :--- | :--- | :--- |
+| **CIS AWS 1.4** | "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22" | A IA identifica a exposição, valida o risco via Security Graph e gera o patch de fechamento da porta. | **Pass** |
+| **AWS Foundational** | "S3 buckets should have block public access settings enabled" | O Auditor detecta a ausência de blocos de acesso público e o Arquiteto injeta o recurso `aws_s3_bucket_public_access_block`. | **Verified** |
+| **NIST SP 800-53** | "Encryption of data at rest for all storage services" | O motor plugável lê a política de criptografia mandatória e injeta o contexto de KMS no Custom Provider. | **Certified** |
+| **PCI-DSS & SOC2** | "Principle of Least Privilege for IAM Roles" | A plataforma injeta automaticamente `permissions_boundary` em todas as roles criadas via provedor `governor`. | **Compliant** |
+| **Custom Providers** | "Recurso Proprietário X deve ter Tag de Custo" | A IA consome a especificação do provider e valida a presença das tags `CostCenter` e `Project`. | **Verified** |
+
+---
+
 ## 🧩 Componentes Principais
 
 1.  **Agente Arquiteto:** Gera código HCL conforme e aplica patches de auto-remediação.

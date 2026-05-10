@@ -2,6 +2,28 @@
 
 O arquivo `security_graph.json` define o esquema de dados para o **Cloud Security Graph**. Este modelo é o alicerce para uma governança moderna e preditiva, permitindo visualizar a infraestrutura como um **Gêmeo Digital** (Digital Twin) interconectado.
 
+```mermaid
+graph LR
+    subgraph "Nós (Entidades)"
+    EC2[EC2 Instance]
+    S3[S3 Bucket]
+    IAM[IAM Role]
+    SG[Security Group]
+    end
+
+    subgraph "Arestas (Relacionamentos)"
+    EC2 -- "has_role" --> IAM
+    IAM -- "can_read" --> S3
+    EC2 -- "member_of" --> SG
+    SG -- "allows_ingress" --> Internet((Internet))
+    end
+
+    subgraph "Análise de Caminho Tóxico"
+    Internet -- "Attack Path" --> EC2
+    EC2 -- "Data Exfiltration" --> S3
+    end
+```
+
 ## 1. Por que um Grafo?
 
 Diferente de listas estáticas de recursos, o grafo permite enxergar a infraestrutura através dos olhos de um atacante. Ele revela como configurações isoladas podem se combinar para criar vulnerabilidades sistêmicas.
