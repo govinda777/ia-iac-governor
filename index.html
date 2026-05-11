@@ -15,8 +15,9 @@
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -110,6 +111,31 @@
             display: block;
         }
 
+        /* Typography Adjustments */
+        .prose pre {
+            background-color: #0f172a !important; /* slate-900 */
+            color: #e2e8f0 !important; /* slate-200 */
+            border: 1px solid #1e293b;
+        }
+        .prose code {
+            color: #0369a1; /* brand-700 */
+            background-color: #f0f9ff; /* brand-50 */
+            padding: 0.2em 0.4em;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+        .prose pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+        }
+        .prose table {
+            font-size: 0.875rem;
+        }
+        .prose thead {
+            background-color: #f8fafc;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -144,6 +170,11 @@
                 <li>
                     <button onclick="navigate('use-cases')" id="nav-use-cases" class="w-full text-left px-6 py-3 font-medium transition-colors border-l-4 border-transparent hover:bg-brand-600/30 text-brand-100">
                         🛡️ Casos de Uso (Sec/Fin)
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigate('docs')" id="nav-docs" class="w-full text-left px-6 py-3 font-medium transition-colors border-l-4 border-transparent hover:bg-brand-600/30 text-brand-100">
+                        📚 Documentação
                     </button>
                 </li>
             </ul>
@@ -447,6 +478,48 @@
             </div>
         </section>
 
+        <!-- SECTION 5: DOCUMENTAÇÃO -->
+        <section id="docs" class="spa-section">
+            <header class="mb-10">
+                <h1 class="text-4xl font-extrabold text-neutral-900 mb-4 tracking-tight">Documentação Detalhada</h1>
+                <p class="text-lg text-neutral-600 leading-relaxed max-w-4xl">
+                    Explore os detalhes técnicos de cada componente do projeto através dos arquivos README integrados diretamente do repositório.
+                </p>
+            </header>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Sidebar Documentação -->
+                <aside class="w-full lg:w-1/4 bg-white rounded-xl shadow-sm border border-neutral-100 p-6 self-start">
+                    <h3 class="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-4">Geral</h3>
+                    <ul class="space-y-2 mb-6">
+                        <li><button onclick="loadMarkdown('README.md', this)" class="doc-link w-full text-left px-3 py-2 text-sm rounded-md bg-brand-50 text-brand-700 font-medium">Principal</button></li>
+                        <li><button onclick="loadMarkdown('ARCHITECTURE.md', this)" class="doc-link w-full text-left px-3 py-2 text-sm rounded-md text-neutral-600 hover:bg-neutral-50">Arquitetura</button></li>
+                        <li><button onclick="loadMarkdown('USE_CASE.md', this)" class="doc-link w-full text-left px-3 py-2 text-sm rounded-md text-neutral-600 hover:bg-neutral-50">Casos de Uso</button></li>
+                        <li><button onclick="loadMarkdown('CONTRIBUTING.md', this)" class="doc-link w-full text-left px-3 py-2 text-sm rounded-md text-neutral-600 hover:bg-neutral-50">Contribuição</button></li>
+                    </ul>
+
+                    <h3 class="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-4">Módulos</h3>
+                    <ul class="space-y-2">
+                        <li><button onclick="loadMarkdown('agents/README.md', this)" class="doc-link w-full text-left px-3 py-2 text-sm rounded-md text-neutral-600 hover:bg-neutral-50">Agentes</button></li>
+                        <li><button onclick="loadMarkdown('core/README.md', this)" class="doc-link w-full text-left px-3 py-2 text-sm rounded-md text-neutral-600 hover:bg-neutral-50">Core / Governança</button></li>
+                        <li><button onclick="loadMarkdown('schema/README.md', this)" class="doc-link w-full text-left px-3 py-2 text-sm rounded-md text-neutral-600 hover:bg-neutral-50">Schema / Graph</button></li>
+                        <li><button onclick="loadMarkdown('custom_provider/README.md', this)" class="doc-link w-full text-left px-3 py-2 text-sm rounded-md text-neutral-600 hover:bg-neutral-50">Custom Provider</button></li>
+                        <li><button onclick="loadMarkdown('golden_paths/README.md', this)" class="doc-link w-full text-left px-3 py-2 text-sm rounded-md text-neutral-600 hover:bg-neutral-50">Golden Paths</button></li>
+                        <li><button onclick="loadMarkdown('policies/README.md', this)" class="doc-link w-full text-left px-3 py-2 text-sm rounded-md text-neutral-600 hover:bg-neutral-50">Policies (Rego)</button></li>
+                    </ul>
+                </aside>
+
+                <!-- Área de Conteúdo Markdown -->
+                <div class="w-full lg:w-3/4 bg-white rounded-xl shadow-sm border border-neutral-100 p-8 md:p-12 overflow-x-auto min-h-[600px]">
+                    <div id="markdown-content" class="prose prose-slate prose-brand max-w-none prose-headings:font-bold prose-a:text-brand-600 prose-img:rounded-xl prose-code:text-brand-600">
+                        <div class="flex items-center justify-center h-64 text-neutral-400">
+                            <p>Selecione um documento na barra lateral para visualizar.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- Vanilla JS Logic for SPA Navigation, Interactions, and Charts -->
@@ -480,6 +553,55 @@
             }
             if (sectionId === 'use-cases' && chartInstances.drift) {
                 chartInstances.drift.resize();
+            }
+
+            // Auto-load main README when entering docs
+            if (sectionId === 'docs') {
+                const mainDocBtn = document.querySelector('.doc-link');
+                if (mainDocBtn) loadMarkdown('README.md', mainDocBtn);
+            }
+        }
+
+        // --- 1.1 Documentation Loading Logic ---
+        async function loadMarkdown(filePath, btnElement) {
+            const contentArea = document.getElementById('markdown-content');
+
+            // UI Feedback: Loading state
+            contentArea.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-64 text-neutral-400 gap-4">
+                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
+                    <p>Carregando ${filePath}...</p>
+                </div>
+            `;
+
+            // UI: Update active button state
+            document.querySelectorAll('.doc-link').forEach(btn => {
+                btn.classList.remove('bg-brand-50', 'text-brand-700', 'font-medium');
+                btn.classList.add('text-neutral-600', 'hover:bg-neutral-50');
+            });
+            if (btnElement) {
+                btnElement.classList.add('bg-brand-50', 'text-brand-700', 'font-medium');
+                btnElement.classList.remove('text-neutral-600', 'hover:bg-neutral-50');
+            }
+
+            try {
+                const response = await fetch(filePath);
+                if (!response.ok) throw new Error('Falha ao carregar arquivo');
+                const text = await response.text();
+
+                // Parse markdown and sanitize/render
+                contentArea.innerHTML = marked.parse(text);
+
+                // Scroll to top of content
+                contentArea.scrollTop = 0;
+
+            } catch (error) {
+                contentArea.innerHTML = `
+                    <div class="bg-rose-50 border border-rose-100 rounded-lg p-6 text-rose-800">
+                        <h4 class="font-bold mb-2">Erro ao carregar documento</h4>
+                        <p class="text-sm">Não foi possível carregar o arquivo em <code>${filePath}</code>. Verifique se o arquivo existe no repositório.</p>
+                    </div>
+                `;
             }
         }
 
