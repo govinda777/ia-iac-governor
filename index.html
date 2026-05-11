@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign Infrastructure & Governança AI-Native</title>
+    
+    <!-- Chosen Palette: Warm Neutrals with Corporate Blue & Slate Accents -->
+    <!-- Application Structure Plan: The SPA uses a functional dashboard layout with a persistent sidebar (or top nav on mobile) for seamless navigation. The structure is divided into thematic pillars based on the source report: 1. Visão Geral (The Problem & Paradigm Shift), 2. Arquitetura (Layers: IDP, OPA, Custom Providers), 3. Inteligência Artificial (AI Agents & Security Graphs), and 4. Casos de Uso (SecOps & FinOps). This non-linear approach allows users (Platform Engineers, Security Analysts, CTOs) to quickly drill down into the specific areas of interest (e.g., how AI helps or how to enforce PCI-DSS) without reading a linear 50-page report. Core interactions include tabbed interfaces for complex concepts and interactive charts to visualize impact. -->
+    <!-- Visualization & Content Choices: 
+         - Report Info: Shift from Traditional DevOps to Platform Engineering -> Goal: Compare cognitive load -> Viz: Bar Chart (Chart.js) -> Interaction: Hover for exact metrics -> Justification: Clearly demonstrates the ROI of IDPs -> Library: Chart.js (NO SVG).
+         - Report Info: Infrastructure Drift & Cost Overruns -> Goal: Change over time -> Viz: Line/Area Chart (Chart.js) -> Interaction: Toggle between 'Manual' and 'Governed' states -> Justification: Visualizes the "Day 2" operational nightmares and how governance stabilizes them -> Library: Chart.js (NO SVG).
+         - Report Info: Governance Architecture (Golden Paths, Custom Providers, OPA) -> Goal: Organize/Hierarchy -> Viz: HTML/CSS Flow Diagram -> Interaction: Clickable blocks to reveal details -> Justification: Shows the pluggable modularity without relying on unsupported libraries -> Library: HTML/CSS (NO SVG/Mermaid).
+         - Report Info: AI Agents (Architect, Auditor, Sentinel) -> Goal: Inform/Organize -> Viz: Tabbed Interface -> Interaction: Click tabs to see each agent's role -> Justification: Manages screen space while explaining complex multi-agent workflows. 
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        },
+                        neutral: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            800: '#292524',
+                            900: '#1c1917',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base Styling */
+        body {
+            background-color: #fafaf9; /* neutral-50 - Light background requirement */
+            color: #292524; /* neutral-800 */
+        }
+        
+        /* Chart Container Strict Guidelines */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Constrain max width for readability */
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+            padding: 1rem;
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* HTML/CSS Diagram Styling */
+        .diagram-node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .diagram-node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Hide sections by default for SPA logic */
+        .spa-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .spa-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <!-- Navigation Sidebar -->
+    <nav class="w-full md:w-64 bg-brand-900 text-white flex-shrink-0 flex flex-col shadow-xl z-10 sticky top-0 md:h-screen">
+        <div class="p-6 flex items-center gap-3 border-b border-brand-600/30">
+            <div class="text-2xl font-bold tracking-wider">☁️ GovIaC</div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <button onclick="navigate('overview')" id="nav-overview" class="w-full text-left px-6 py-3 font-medium transition-colors bg-brand-600/50 border-l-4 border-brand-500 hover:bg-brand-600/30">
+                        📊 Visão Geral
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigate('architecture')" id="nav-architecture" class="w-full text-left px-6 py-3 font-medium transition-colors border-l-4 border-transparent hover:bg-brand-600/30 text-brand-100">
+                        🏗️ Arquitetura em Camadas
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigate('ai-native')" id="nav-ai-native" class="w-full text-left px-6 py-3 font-medium transition-colors border-l-4 border-transparent hover:bg-brand-600/30 text-brand-100">
+                        🤖 Inteligência Artificial
+                    </button>
+                </li>
+                <li>
+                    <button onclick="navigate('use-cases')" id="nav-use-cases" class="w-full text-left px-6 py-3 font-medium transition-colors border-l-4 border-transparent hover:bg-brand-600/30 text-brand-100">
+                        🛡️ Casos de Uso (Sec/Fin)
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="p-6 text-xs text-brand-100/50 border-t border-brand-600/30">
+            Baseado no Relatório Técnico 2026<br>Platform Engineering & OPA
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-6 md:p-10 lg:p-12 overflow-x-hidden w-full max-w-7xl mx-auto">
+        
+        <!-- SECTION 1: VISÃO GERAL -->
+        <section id="overview" class="spa-section active">
+            <header class="mb-10">
+                <h1 class="text-4xl font-extrabold text-neutral-900 mb-4 tracking-tight">O Paradigma da Infraestrutura Soberana</h1>
+                <p class="text-lg text-neutral-600 leading-relaxed max-w-4xl">
+                    Bem-vindo ao dashboard interativo sobre Governança de Infraestrutura como Código (IaC). Esta seção introduz o desafio crescente da complexidade pós-implantação (Day 2 Operations) em arquiteturas multicloud. Exploramos como a Engenharia de Plataforma e os Internal Developer Platforms (IDPs) substituem a gestão manual por "Caminhos Dourados", reduzindo a carga cognitiva e prevenindo configurações incorretas em escala.
+                </p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <!-- KPI Cards -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-100 flex flex-col justify-center">
+                    <div class="text-3xl mb-2 text-brand-600">📈</div>
+                    <h3 class="text-neutral-500 font-semibold text-sm uppercase tracking-wider mb-1">Carga Cognitiva (Devs)</h3>
+                    <p class="text-3xl font-bold text-neutral-900">-65%</p>
+                    <p class="text-sm text-neutral-500 mt-2">Com uso de Golden Paths</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-100 flex flex-col justify-center">
+                    <div class="text-3xl mb-2 text-emerald-500">🛡️</div>
+                    <h3 class="text-neutral-500 font-semibold text-sm uppercase tracking-wider mb-1">Prevenção de Risco</h3>
+                    <p class="text-3xl font-bold text-neutral-900">100%</p>
+                    <p class="text-sm text-neutral-500 mt-2">Bloqueio via Policy as Code (OPA)</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-100 flex flex-col justify-center">
+                    <div class="text-3xl mb-2 text-rose-500">📉</div>
+                    <h3 class="text-neutral-500 font-semibold text-sm uppercase tracking-wider mb-1">Detecção de Drift</h3>
+                    <p class="text-3xl font-bold text-neutral-900">Automática</p>
+                    <p class="text-sm text-neutral-500 mt-2">Reconciliação Contínua</p>
+                </div>
+            </div>
+
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-neutral-800 mb-6">Comparativo de Produtividade e Carga Cognitiva</h2>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-100">
+                    <p class="mb-4 text-neutral-600">Este gráfico ilustra a redução drástica no tempo e esforço exigidos dos desenvolvedores quando uma organização transita de um modelo Tradicional (DevOps com ClickOps/Scripts manuais) para uma Engenharia de Plataforma madura focada em abstração de infraestrutura.</p>
+                    <div class="chart-container">
+                        <canvas id="cognitiveLoadChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-brand-50 border border-brand-100 rounded-xl p-8">
+                <h3 class="text-xl font-bold text-brand-900 mb-3">O que é a Governança Preventiva?</h3>
+                <p class="text-brand-800 leading-relaxed">
+                    A evolução contemporânea dos sistemas de computação em nuvem transcendeu a simples automação de scripts. A complexidade exige uma supervisão que ultrapassa a capacidade humana. A Governança Preventiva analisa o <strong>plano de execução (Terraform Plan JSON)</strong> utilizando ferramentas como Open Policy Agent (OPA) <em>antes</em> que a infraestrutura seja provisionada, garantindo conformidade financeira (FinOps) e de segurança (SecOps).
+                </p>
+            </div>
+        </section>
+
+        <!-- SECTION 2: ARQUITETURA -->
+        <section id="architecture" class="spa-section">
+            <header class="mb-10">
+                <h1 class="text-4xl font-extrabold text-neutral-900 mb-4 tracking-tight">Arquitetura de Governança em Camadas</h1>
+                <p class="text-lg text-neutral-600 leading-relaxed max-w-4xl">
+                    Nesta seção, dissecamos a infraestrutura plugável e modular projetada para escalar sem engarrafamentos. Você entenderá como separamos as responsabilidades através da "Soberania de Infraestrutura": os desenvolvedores interagem com módulos simplificados, enquanto a plataforma injeta validações complexas através de Provedores Customizados e Políticas como Código (OPA).
+                </p>
+            </header>
+
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-100 p-8 mb-10 overflow-hidden">
+                <h2 class="text-2xl font-bold text-neutral-800 mb-6">Fluxo de Provisionamento Governado (GaaS)</h2>
+                <p class="mb-8 text-neutral-600">Interaja com os blocos abaixo para entender a responsabilidade de cada camada no pipeline de provisionamento de infraestrutura.</p>
+                
+                <!-- Pure HTML/CSS Interactive Diagram -->
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8 w-full">
+                    
+                    <!-- Dev -->
+                    <div class="diagram-node w-full md:w-1/4 bg-blue-50 border-2 border-blue-200 rounded-lg p-6 text-center" onclick="updateDiagramDetail('dev')">
+                        <div class="text-4xl mb-3">👨‍💻</div>
+                        <h4 class="font-bold text-blue-900">Desenvolvedor</h4>
+                        <p class="text-xs text-blue-700 mt-2">Consome a plataforma</p>
+                    </div>
+
+                    <div class="text-2xl text-neutral-300 transform rotate-90 md:rotate-0">➔</div>
+
+                    <!-- Abstraction -->
+                    <div class="diagram-node w-full md:w-1/4 bg-emerald-50 border-2 border-emerald-200 rounded-lg p-6 text-center" onclick="updateDiagramDetail('idp')">
+                        <div class="text-4xl mb-3">📦</div>
+                        <h4 class="font-bold text-emerald-900">Golden Paths</h4>
+                        <p class="text-xs text-emerald-700 mt-2">Módulos Privados</p>
+                    </div>
+
+                    <div class="text-2xl text-neutral-300 transform rotate-90 md:rotate-0">➔</div>
+
+                    <!-- Pipeline/Gov -->
+                    <div class="diagram-node w-full md:w-1/4 bg-purple-50 border-2 border-purple-200 rounded-lg p-6 text-center" onclick="updateDiagramDetail('gov')">
+                        <div class="text-4xl mb-3">⚖️</div>
+                        <h4 class="font-bold text-purple-900">Governança (CI/CD)</h4>
+                        <p class="text-xs text-purple-700 mt-2">Custom Providers & OPA</p>
+                    </div>
+
+                    <div class="text-2xl text-neutral-300 transform rotate-90 md:rotate-0">➔</div>
+
+                    <!-- Cloud -->
+                    <div class="diagram-node w-full md:w-1/4 bg-orange-50 border-2 border-orange-200 rounded-lg p-6 text-center" onclick="updateDiagramDetail('cloud')">
+                        <div class="text-4xl mb-3">☁️</div>
+                        <h4 class="font-bold text-orange-900">Multicloud</h4>
+                        <p class="text-xs text-orange-700 mt-2">AWS / Azure / GCP</p>
+                    </div>
+                </div>
+
+                <!-- Detail Panel for Diagram -->
+                <div id="diagram-detail-panel" class="mt-10 bg-neutral-50 rounded-lg p-6 border border-neutral-200 transition-all duration-300">
+                    <h3 class="text-xl font-bold text-neutral-800 mb-2 flex items-center gap-2">
+                        <span>👆</span> Clique em um bloco do diagrama
+                    </h3>
+                    <p class="text-neutral-600">Explore o fluxo de Arquitetura de Governança Modular Plugável e entenda as responsabilidades.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-neutral-800 mb-4 flex items-center gap-2"><span class="text-2xl text-indigo-500">🔌</span> Custom Terraform Providers</h3>
+                    <p class="text-neutral-600 mb-4 leading-relaxed">
+                        Atuam como orquestradores de chamadas para APIs internas de outros departamentos (Redes, Segurança). Eles removem a criação de recursos sensíveis de provedores públicos nativos.
+                    </p>
+                    <ul class="list-disc pl-5 text-neutral-600 space-y-2">
+                        <li><strong>Soberania e Desacoplamento:</strong> O time de redes mantém o IPAM; a plataforma consome via API.</li>
+                        <li><strong>Plan Modification:</strong> Injetam automaticamente <em>Permissions Boundaries</em> e MFA em <code>aws_iam_role</code> antes de apresentar o plano.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-neutral-800 mb-4 flex items-center gap-2"><span class="text-2xl text-rose-500">📜</span> Open Policy Agent (OPA)</h3>
+                    <p class="text-neutral-600 mb-4 leading-relaxed">
+                        O motor de "Policy as Code" (Rego) que escaneia o <code>terraform plan JSON</code>. É a camada de segurança inegociável do pipeline, superior à análise estática HCL pura.
+                    </p>
+                    <ul class="list-disc pl-5 text-neutral-600 space-y-2">
+                        <li><strong>Bloqueio de Gastos:</strong> Falha automática se o custo projetado subir > $100 (via Infracost/OPA).</li>
+                        <li><strong>Segurança:</strong> Impede instâncias sem tags obrigatórias ou Security Groups permitindo <code>0.0.0.0/0</code> na porta 22.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: AI-NATIVE -->
+        <section id="ai-native" class="spa-section">
+            <header class="mb-10">
+                <h1 class="text-4xl font-extrabold text-neutral-900 mb-4 tracking-tight">IA como Motor Analítico & Gêmeo Digital</h1>
+                <p class="text-lg text-neutral-600 leading-relaxed max-w-4xl">
+                    Nesta área, abordamos a mudança de paradigma de verificações de compliance baseadas em regras estáticas (sim/não) para sistemas cognitivos Multi-Agente (ex: CrewAI, Firefly AI). Explore como a Inteligência Artificial modela o ambiente como um Grafo de Segurança para identificar "combinações tóxicas" e realizar simulações "What-If" preditivas.
+                </p>
+            </header>
+
+            <div class="mb-12 bg-neutral-900 text-white rounded-xl p-8 shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 text-9xl opacity-5">🧠</div>
+                <h2 class="text-2xl font-bold mb-4">Cloud Security Graph (O Gêmeo Digital)</h2>
+                <p class="text-neutral-300 mb-6 max-w-3xl leading-relaxed">
+                    A IA visualiza a infraestrutura não como uma lista estática, mas como uma rede (Grafo). 
+                    <strong>Nós</strong> representam ativos (EC2, S3), e <strong>Arestas</strong> representam permissões (IAM). 
+                    Isso permite à plataforma traduzir consultas de linguagem natural ("Quais recursos PCI estão expostos?") em travessias complexas para detectar vulnerabilidades sistêmicas antes do deploy.
+                </p>
+            </div>
+
+            <div class="bg-white border border-neutral-200 rounded-xl shadow-sm overflow-hidden">
+                <div class="flex border-b border-neutral-200 bg-neutral-50 overflow-x-auto">
+                    <button class="ai-tab-btn flex-1 py-4 px-6 font-semibold text-brand-600 border-b-2 border-brand-600 focus:outline-none transition-colors whitespace-nowrap" onclick="switchAITab('arquiteto', this)">
+                        👷 Agente Arquiteto
+                    </button>
+                    <button class="ai-tab-btn flex-1 py-4 px-6 font-semibold text-neutral-500 border-b-2 border-transparent hover:text-neutral-700 focus:outline-none transition-colors whitespace-nowrap" onclick="switchAITab('auditor', this)">
+                        🕵️ Agente Auditor
+                    </button>
+                    <button class="ai-tab-btn flex-1 py-4 px-6 font-semibold text-neutral-500 border-b-2 border-transparent hover:text-neutral-700 focus:outline-none transition-colors whitespace-nowrap" onclick="switchAITab('sentinel', this)">
+                        👁️ Agente Sentinel
+                    </button>
+                </div>
+                
+                <div class="p-8">
+                    <!-- Arquiteto Content -->
+                    <div id="tab-arquiteto" class="ai-tab-content block animate-[fadeIn_0.3s_ease-in]">
+                        <h3 class="text-2xl font-bold text-neutral-800 mb-4">Geração via Intenção</h3>
+                        <p class="text-neutral-600 mb-6 leading-relaxed">
+                            Interpreta a intenção em linguagem natural do usuário (ex: "Preciso de um bucket S3 para logs") e cruza com a biblioteca de módulos privados (Golden Paths).
+                        </p>
+                        <div class="bg-slate-800 rounded-lg p-5 font-mono text-sm text-green-400 overflow-x-auto">
+                            > Input: "Criar banco de dados para Prod"<br>
+                            > Processando...<br>
+                            > Output: aws_db_instance injetado com tags obrigatórias, criptografia KMS ativa, multi-az=true.<br>
+                            <span class="text-neutral-400"># Shift-Left Extremo: Conformidade garantida na escrita.</span>
+                        </div>
+                    </div>
+
+                    <!-- Auditor Content -->
+                    <div id="tab-auditor" class="ai-tab-content hidden animate-[fadeIn_0.3s_ease-in]">
+                        <h3 class="text-2xl font-bold text-neutral-800 mb-4">O Juiz Implacável</h3>
+                        <p class="text-neutral-600 mb-6 leading-relaxed">
+                            Atua como orquestrador sobre o OPA e outras ferramentas Out-of-the-Box (OOTB). Se o código falha nas políticas, o Agente não apenas bloqueia, mas <strong>explica o porquê e auto-remedia</strong>.
+                        </p>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <span class="mt-1 text-red-500">❌</span>
+                                <div>
+                                    <strong class="text-neutral-800 block">Erro Detectado:</strong>
+                                    <span class="text-neutral-600 text-sm">Security Group permite SSH (porta 22) para 0.0.0.0/0.</span>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="mt-1 text-emerald-500">✅</span>
+                                <div>
+                                    <strong class="text-neutral-800 block">Correção do Auditor:</strong>
+                                    <span class="text-neutral-600 text-sm">Atualizando regra para aceitar conexão apenas da VPN Corporativa (sg-12345). Auto-commit gerado.</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Sentinel Content -->
+                    <div id="tab-sentinel" class="ai-tab-content hidden animate-[fadeIn_0.3s_ease-in]">
+                        <h3 class="text-2xl font-bold text-neutral-800 mb-4">Análise Contextual & Preditiva</h3>
+                        <p class="text-neutral-600 mb-6 leading-relaxed">
+                            Percorre o Grafo de Segurança. Mesmo que o recurso unitário esteja correto (ex: bucket S3 privado), ele entende o ecossistema e prevê falhas complexas.
+                        </p>
+                        <div class="border-l-4 border-orange-400 bg-orange-50 p-5 rounded-r-lg">
+                            <h4 class="font-bold text-orange-800 mb-2">Simulação "What-If" em Ação:</h4>
+                            <p class="text-orange-900 text-sm leading-relaxed">
+                                "O bucket é privado, mas a Role associada à instância EC2 possui permissão <code>s3:*</code>, e a instância está exposta a uma sub-rede pública. Combinação Tóxica detectada. Aplicando Princípio do Menor Privilégio na Role."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: CASOS DE USO -->
+        <section id="use-cases" class="spa-section">
+            <header class="mb-10">
+                <h1 class="text-4xl font-extrabold text-neutral-900 mb-4 tracking-tight">Casos de Uso: Operações de Dia 2</h1>
+                <p class="text-lg text-neutral-600 leading-relaxed max-w-4xl">
+                    A implantação do Dia 1 é determinística; as Operações do Dia 2 são caóticas. Esta seção quantifica o impacto da governança automatizada no controle do "Infrastructure Drift" e na garantia de conformidade contínua (FinOps e SecOps), essenciais para auditorias PCI-DSS e resiliência de dados Zero Trust.
+                </p>
+            </header>
+
+            <!-- Interactive Chart: Drift Management -->
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-neutral-100 mb-10">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-neutral-800">Impacto no 'Drift' de Configuração</h2>
+                        <p class="text-neutral-500 mt-1">Comparativo de desvios (alterações manuais não rastreadas) ao longo de 6 meses.</p>
+                    </div>
+                    <!-- Interaction Controls -->
+                    <div class="mt-4 md:mt-0 flex bg-neutral-100 p-1 rounded-lg">
+                        <button id="btn-chart-manual" class="px-4 py-2 text-sm font-medium rounded-md bg-white shadow-sm text-neutral-800 focus:outline-none transition-all" onclick="updateDriftChart('manual')">Abordagem Manual</button>
+                        <button id="btn-chart-auto" class="px-4 py-2 text-sm font-medium rounded-md text-neutral-500 hover:text-neutral-800 focus:outline-none transition-all" onclick="updateDriftChart('auto')">Governado por IA</button>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="driftChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Cards de Casos Práticos -->
+            <h2 class="text-2xl font-bold text-neutral-800 mb-6">Aplicações Práticas (Policy as Code)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- PCI-DSS -->
+                <div class="bg-white border border-neutral-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center text-2xl mb-4">🔐</div>
+                    <h3 class="text-lg font-bold text-neutral-800 mb-2">Conformidade PCI-DSS</h3>
+                    <p class="text-neutral-600 text-sm leading-relaxed mb-4">
+                        O OPA analisa o plano JSON para bloquear recursos de banco de dados e buckets que não possuam criptografia obrigatória (SSE-KMS via Customer Managed Keys).
+                    </p>
+                    <div class="bg-neutral-50 p-3 rounded text-xs text-neutral-500 border border-neutral-100">
+                        Regra: <code>deny[msg] { not input.encryption == "KMS" }</code>
+                    </div>
+                </div>
+
+                <!-- FinOps -->
+                <div class="bg-white border border-neutral-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-lg flex items-center justify-center text-2xl mb-4">💰</div>
+                    <h3 class="text-lg font-bold text-neutral-800 mb-2">Guardrails de Custos (FinOps)</h3>
+                    <p class="text-neutral-600 text-sm leading-relaxed mb-4">
+                        Identificação contínua de "Recursos Órfãos" (volumes EBS soltos) e regras de limiar de orçamento que rejeitam um PR se o aumento mensal projetado ultrapassar U$ 100.
+                    </p>
+                    <div class="flex gap-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Infracost</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Env0</span>
+                    </div>
+                </div>
+
+                <!-- Networking / IPAM -->
+                <div class="bg-white border border-neutral-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center text-2xl mb-4">🌐</div>
+                    <h3 class="text-lg font-bold text-neutral-800 mb-2">IPAM Automático & Redes</h3>
+                    <p class="text-neutral-600 text-sm leading-relaxed mb-4">
+                        O Custom Provider de Redes reserva sub-redes (CIDRs) automaticamente evitando sobreposições IP. Security Groups forçam referência a grupos, nunca a IPs fixos ou 0.0.0.0/0.
+                    </p>
+                    <div class="bg-neutral-50 p-3 rounded text-xs text-neutral-500 border border-neutral-100">
+                        Zero Trust Data Resilience
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Vanilla JS Logic for SPA Navigation, Interactions, and Charts -->
+    <script>
+        // --- 1. SPA Navigation Logic ---
+        function navigate(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.spa-section').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Remove active states from nav buttons
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('bg-brand-600/50', 'border-brand-500');
+                btn.classList.add('border-transparent', 'text-brand-100');
+            });
+
+            // Show target section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Set active state on clicked nav
+            const activeBtn = document.getElementById('nav-' + sectionId);
+            if(activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-brand-100');
+                activeBtn.classList.add('bg-brand-600/50', 'border-brand-500');
+            }
+
+            // Re-render/Resize charts if they become visible to prevent rendering bugs
+            if (sectionId === 'overview' && chartInstances.cognitive) {
+                chartInstances.cognitive.resize();
+            }
+            if (sectionId === 'use-cases' && chartInstances.drift) {
+                chartInstances.drift.resize();
+            }
+        }
+
+        // --- 2. Interactive Diagram Logic (Arquitetura) ---
+        const diagramData = {
+            'dev': {
+                title: "O Desenvolvedor",
+                content: "Foca inteiramente na lógica da aplicação. Utiliza os módulos pré-aprovados informando apenas intenções (ex: Nome do App, Ambiente). Não lida com código de rede ou políticas IAM complexas.",
+                icon: "👨‍💻"
+            },
+            'idp': {
+                title: "Internal Developer Platform (IDP)",
+                content: "Disponibiliza 'Golden Paths' (Caminhos Dourados). O código fonte complexo HCL é encapsulado em um Private Module Registry. Isso garante versionamento e padronização massiva.",
+                icon: "📦"
+            },
+            'gov': {
+                title: "Camada de Governança (CI/CD)",
+                content: "O coração do sistema. Avalia o 'Terraform Plan JSON' usando OPA (Rego) para bloquear violações de segurança e orçamento. Custom Providers conectam-se às APIs do time de Segurança e Redes.",
+                icon: "⚖️"
+            },
+            'cloud': {
+                title: "Provisionamento Multicloud",
+                content: "Somente após todas as validações serem bem-sucedidas o provisionamento ocorre no provedor final (AWS, Azure, GCP). O estado do Terraform (tfstate) é fortemente protegido e criptografado.",
+                icon: "☁️"
+            }
+        };
+
+        function updateDiagramDetail(nodeId) {
+            const panel = document.getElementById('diagram-detail-panel');
+            const data = diagramData[nodeId];
+            
+            panel.innerHTML = `
+                <h3 class="text-xl font-bold text-brand-900 mb-2 flex items-center gap-2">
+                    <span class="text-2xl">${data.icon}</span> ${data.title}
+                </h3>
+                <p class="text-neutral-700 leading-relaxed">${data.content}</p>
+            `;
+            
+            // Simple flash effect
+            panel.classList.add('bg-brand-50', 'border-brand-200');
+            setTimeout(() => {
+                panel.classList.remove('bg-brand-50', 'border-brand-200');
+            }, 500);
+        }
+
+        // --- 3. AI Tabs Logic ---
+        function switchAITab(tabId, btnElement) {
+            // Hide all contents
+            document.querySelectorAll('.ai-tab-content').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+            // Show target
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.getElementById('tab-' + tabId).classList.add('block');
+
+            // Reset buttons
+            document.querySelectorAll('.ai-tab-btn').forEach(btn => {
+                btn.classList.remove('text-brand-600', 'border-brand-600');
+                btn.classList.add('text-neutral-500', 'border-transparent');
+            });
+            // Activate clicked button
+            btnElement.classList.remove('text-neutral-500', 'border-transparent');
+            btnElement.classList.add('text-brand-600', 'border-brand-600');
+        }
+
+        // --- 4. Chart.js Initialization and Data Management ---
+        
+        // Global object to hold chart instances for updating
+        const chartInstances = {
+            cognitive: null,
+            drift: null
+        };
+
+        // Initialize Charts on DOM Load
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // --- Chart 1: Bar Chart (Cognitive Load Comparison) ---
+            const ctxCog = document.getElementById('cognitiveLoadChart').getContext('2d');
+            chartInstances.cognitive = new Chart(ctxCog, {
+                type: 'bar',
+                data: {
+                    labels: ['Setup de Ambiente', 'Criação de Infra (IaC)', 'Auditoria Manual', 'Deploy Seguro'],
+                    datasets: [
+                        {
+                            label: 'DevOps Tradicional (Horas)',
+                            data: [8, 12, 5, 4],
+                            backgroundColor: '#94a3b8', // Slate 400
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Platform Eng. + IDP (Horas)',
+                            data: [1, 2, 0.5, 1],
+                            backgroundColor: '#0284c7', // Brand 600
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL FOR CONTAINER SIZING
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Inter' } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' hrs';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            title: { display: true, text: 'Tempo Estimado (Horas)', font: { family: 'Inter' } }
+                        },
+                        x: {
+                            ticks: {
+                                callback: function(val, index) {
+                                    // 16-char wrapping logic for x-axis labels
+                                    let label = this.getLabelForValue(val);
+                                    if (label.length > 16) {
+                                        return label.match(/.{1,16}(\s|$)/g);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- Chart 2: Line Chart (Drift / Cost Management) Initial Load ---
+            initDriftChart();
+        });
+
+        // Drift Data Scenarios
+        const driftDataSets = {
+            'manual': {
+                data: [10, 25, 45, 80, 130, 210],
+                label: 'Incisões de Drift (ClickOps)',
+                color: '#f43f5e', // Rose 500
+                bg: 'rgba(244, 63, 94, 0.1)'
+            },
+            'auto': {
+                data: [5, 4, 6, 2, 3, 1],
+                label: 'Drift com Reconciliação Contínua (IA/OPA)',
+                color: '#10b981', // Emerald 500
+                bg: 'rgba(16, 185, 129, 0.1)'
+            }
+        };
+
+        function initDriftChart() {
+            const ctxDrift = document.getElementById('driftChart').getContext('2d');
+            const initialData = driftDataSets['manual'];
+            
+            chartInstances.drift = new Chart(ctxDrift, {
+                type: 'line',
+                data: {
+                    labels: ['Mês 1', 'Mês 2', 'Mês 3', 'Mês 4', 'Mês 5', 'Mês 6'],
+                    datasets: [{
+                        label: initialData.label,
+                        data: initialData.data,
+                        borderColor: initialData.color,
+                        backgroundColor: initialData.bg,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL FOR CONTAINER SIZING
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Inter' } } },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            title: { display: true, text: 'Instâncias Desviadas', font: { family: 'Inter' } }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        function updateDriftChart(scenario) {
+            const chart = chartInstances.drift;
+            const data = driftDataSets[scenario];
+            
+            // Update chart data
+            chart.data.datasets[0].label = data.label;
+            chart.data.datasets[0].data = data.data;
+            chart.data.datasets[0].borderColor = data.color;
+            chart.data.datasets[0].backgroundColor = data.bg;
+            chart.update();
+
+            // Toggle Button Styles
+            if (scenario === 'manual') {
+                document.getElementById('btn-chart-manual').classList.add('bg-white', 'shadow-sm', 'text-neutral-800');
+                document.getElementById('btn-chart-manual').classList.remove('text-neutral-500');
+                document.getElementById('btn-chart-auto').classList.remove('bg-white', 'shadow-sm', 'text-neutral-800');
+                document.getElementById('btn-chart-auto').classList.add('text-neutral-500');
+            } else {
+                document.getElementById('btn-chart-auto').classList.add('bg-white', 'shadow-sm', 'text-neutral-800');
+                document.getElementById('btn-chart-auto').classList.remove('text-neutral-500');
+                document.getElementById('btn-chart-manual').classList.remove('bg-white', 'shadow-sm', 'text-neutral-800');
+                document.getElementById('btn-chart-manual').classList.add('text-neutral-500');
+            }
+        }
+    </script>
+</body>
+</html>
