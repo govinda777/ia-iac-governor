@@ -1,33 +1,29 @@
-# Documentação Técnica: Integridade do Estado (tfstate) e APIs de Governança
+# Documentação Técnica: Modelo de Orquestração Cross-Departamento
 
-Este documento explica como o recurso `governor_managed_subnet` garante a integridade do estado do Terraform, mesmo quando a API interna de governança sofre alterações.
+Este documento detalha o funcionamento do Provedor Terraform em um cenário de **Soberania de Infraestrutura**, onde diferentes departamentos são responsáveis pelo provisionamento real.
 
-## Arquitetura "Black Box" e Campos Computed
+## Arquitetura de Camadas
 
-O segredo para evitar drift indesejado e falhas no `terraform apply` reside no uso estratégico de campos `Computed: true`.
+Para evitar o acúmulo de "código legado" e misturar responsabilidades, o provedor é dividido em três camadas claras:
 
-### 1. Desacoplamento da Intenção vs. Implementação
-No HCL, o desenvolvedor declara apenas:
-```hcl
-resource "governor_managed_subnet" "app" {
-  project_name = "my-project"
-  tier         = "private"
-}
-```
+1.  **Schema & State (Provedor)**: O arquivo `resource_managed_subnet.go` define **o que** o desenvolvedor quer (intenção) e **como** o Terraform salva isso (estado). Ele não sabe como criar uma VPC ou Subnet.
+2.  **Orchestration (API Interna)**: O pacote `governance` (ex: `api.go`) atua como o representante do departamento técnico (Redes, Segurança, etc). Ele recebe a intenção e executa a lógica complexa (ex: criar VPC, verificar CIDRs, aplicar tags globais).
+3.  **Cloud Native (SDK)**: O SDK da AWS é utilizado como a ferramenta final de execução, mas sua invocação é encapsulada pela camada de Orquestração.
 
-Campos como `cidr_block`, `vpc_id` e `tags` **não são declarados no HCL**. Eles são marcados como `Computed` no schema do Provider.
+## Fluxo de Provisionamento "Black Box"
 
-### 2. O Ciclo de Vida e Mudanças na API
-Se a API de governança mudar o padrão de uma tag (ex: de `Project` para `ProjectID`), o ciclo de vida ocorre da seguinte forma:
+Quando um desenvolvedor executa `terraform apply`:
 
-1.  **Read Context**: O método `Read` do Provedor busca o estado atual na AWS (via SDK). Ele popula o estado local com o que **realmente existe** na nuvem.
-2.  **Plan Context**: O Terraform compara o HCL com o estado. Como `tags` ou `cidr_block` não estão no HCL, o Terraform "confia" no que o Provedor decidir.
-3.  **Update Context**: Se a API interna retornar tags diferentes durante um novo `apply`, o Provedor detectará a diferença entre o que está na AWS e o que a API de Governança agora exige. Ele executará a atualização via `ec2.CreateTags`, mantendo o `tfstate` sincronizado com a nova regra de negócio sem exigir que o desenvolvedor altere seu código HCL.
+1.  O Provedor captura o `project_name` e `tier`.
+2.  O Provedor chama `governance.ProvisionSubnet()`.
+3.  O departamento de Redes (representado pela API) decide a arquitetura:
+    *   Verifica se a VPC do projeto já existe. Se não, cria.
+    *   Aloca o CIDR correto baseado em regras corporativas.
+    *   Cria a Subnet com as tags de conformidade.
+4.  A API retorna os IDs (`subnet-xxx`, `vpc-yyy`) para o Provedor.
+5.  O Provedor salva esses IDs no `tfstate`.
 
-### 3. Idempotência e Drift
-*   **Drift de Recriação**: Campos fundamentais como `project_name` e `tier` utilizam `RequiresReplace()`. Se alterados, o Terraform força a destruição e recriação do recurso, garantindo que a governança realoque um novo CIDR se necessário.
-*   **Limpeza de Estado**: Se o recurso for deletado manualmente na AWS, o método `Read` detectará o erro `NotFound` e executará `resp.State.RemoveResource(ctx)`. Isso informa ao Terraform que o recurso não existe mais, permitindo que ele seja recriado no próximo `apply`.
-
-## Benefícios para Engenharia de Plataforma
-- **Zero Código Legado**: Regras de nomenclatura e alocação de rede ficam na API de governança, não espalhadas em milhares de repositórios Git de aplicações.
-- **Soberania**: A plataforma mantém o controle total sobre quais VPCs e faixas de IP são utilizadas, baseando-se apenas no contexto do projeto.
+## Vantagens
+*   **Idempotência**: A API de orquestração lida com conflitos e garante que, se o recurso já existir (mesmo que criado por outro processo), o Terraform consiga mapeá-lo.
+*   **Segurança**: O desenvolvedor não tem permissão para escolher o CIDR ou a VPC, eliminando o erro humano e garantindo conformidade por design.
+*   **Manutenibilidade**: Se o departamento de Redes mudar o fornecedor de nuvem ou o padrão de VPCs, a alteração é feita apenas na camada de Orquestração, sem quebrar o código HCL de milhares de aplicações.

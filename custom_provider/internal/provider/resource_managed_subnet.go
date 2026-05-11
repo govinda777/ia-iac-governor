@@ -2,13 +2,11 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	awstypes "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -47,48 +45,46 @@ func (r *managedSubnetResource) Metadata(_ context.Context, req resource.Metadat
 
 func (r *managedSubnetResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Recurso de Subnet gerenciada que aplica regras de governança e soberania de infraestrutura.",
+		MarkdownDescription: "Recurso de Subnet gerenciada que delega o provisionamento ao departamento de Redes.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "ID da Subnet na AWS.",
+				MarkdownDescription: "ID da Subnet gerado pelo departamento de Redes.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"project_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Nome do projeto associado à subnet.",
+				MarkdownDescription: "Nome do projeto para o qual o departamento de Redes alocará recursos.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"tier": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Tier da subnet (ex: public, private).",
+				MarkdownDescription: "Tier da infraestrutura desejada.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"cidr_block": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Bloco CIDR alocado automaticamente pelo IPAM de governança.",
+				MarkdownDescription: "Bloco CIDR definido pelo departamento.",
 			},
 			"vpc_id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "ID da VPC selecionada pela governança.",
+				MarkdownDescription: "VPC selecionada ou criada pelo departamento.",
 			},
 			"availability_zone": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Zona de disponibilidade da subnet.",
+				MarkdownDescription: "AZ definida pela governança de Redes.",
 			},
 			"arn": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "ARN da Subnet na AWS.",
 			},
 			"status": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Status atual da subnet.",
 			},
 		},
 	}
@@ -98,9 +94,6 @@ func (r *managedSubnetResource) Configure(ctx context.Context, req resource.Conf
 	if req.ProviderData == nil {
 		return
 	}
-
-	// Em um provedor real, o cliente AWS seria configurado no Configure do Provedor e passado aqui.
-	// Para este exemplo, criamos um cliente padrão.
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Erro ao carregar configuração AWS", err.Error())
@@ -117,50 +110,23 @@ func (r *managedSubnetResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	// 1. Enforcement de Governança
-	govConfig, err := governance.GetIPAMConfig(ctx, plan.ProjectName.ValueString(), plan.Tier.ValueString())
+	// 🧠 Lógica de Negócio / Orquestração:
+	// O provedor não chama o ec2.CreateSubnet diretamente.
+	// Ele chama a API do departamento responsável, que abstrai a complexidade.
+	govResp, err := governance.ProvisionSubnet(ctx, r.client, plan.ProjectName.ValueString(), plan.Tier.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Erro de Governança", fmt.Sprintf("Não foi possível obter configuração de IPAM: %s", err))
+		resp.Diagnostics.AddError("Erro de Orquestração (Redes)", err.Error())
 		return
 	}
 
-	// 2. Orquestração AWS (SDK v2)
-	// Nota: Em ambiente sandbox sem credenciais reais, isso falhará.
-	// O requisito pede código real com tratamento de erro.
-
-	tags := []awstypes.Tag{}
-	for k, v := range govConfig.DefaultTags {
-		tags = append(tags, awstypes.Tag{
-			Key:   aws.String(k),
-			Value: aws.String(v),
-		})
-	}
-
-	input := &ec2.CreateSubnetInput{
-		VpcId:            aws.String(govConfig.VpcId),
-		CidrBlock:        aws.String(govConfig.CidrBlock),
-		AvailabilityZone: aws.String(govConfig.AvailabilityZone),
-		TagSpecifications: []awstypes.TagSpecification{
-			{
-				ResourceType: awstypes.ResourceTypeSubnet,
-				Tags:         tags,
-			},
-		},
-	}
-
-	output, err := r.client.CreateSubnet(ctx, input)
-	if err != nil {
-		resp.Diagnostics.AddError("Erro ao criar Subnet na AWS", err.Error())
-		return
-	}
-
-	// 3. Mapeamento de Estado
-	plan.ID = types.StringValue(*output.Subnet.SubnetId)
-	plan.CidrBlock = types.StringValue(*output.Subnet.CidrBlock)
-	plan.VpcId = types.StringValue(*output.Subnet.VpcId)
-	plan.AvailabilityZone = types.StringValue(*output.Subnet.AvailabilityZone)
-	plan.Arn = types.StringValue(*output.Subnet.SubnetArn)
-	plan.Status = types.StringValue(string(output.Subnet.State))
+	// 🛠 Mapeamento de Estado:
+	// O provedor apenas persiste o que foi resolvido pelo departamento.
+	plan.ID = types.StringValue(govResp.SubnetId)
+	plan.CidrBlock = types.StringValue(govResp.CidrBlock)
+	plan.VpcId = types.StringValue(govResp.VpcId)
+	plan.AvailabilityZone = types.StringValue(govResp.AvailabilityZone)
+	plan.Arn = types.StringValue(govResp.Arn)
+	plan.Status = types.StringValue(govResp.Status)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -174,18 +140,19 @@ func (r *managedSubnetResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
+	// O Read continua usando o SDK para garantir que o recurso persiste na AWS
+	// e detectar drift externo (alguém deletou manualmente fora do Terraform).
 	input := &ec2.DescribeSubnetsInput{
 		SubnetIds: []string{state.ID.ValueString()},
 	}
 
 	output, err := r.client.DescribeSubnets(ctx, input)
 	if err != nil {
-		// Se a subnet não existir, limpa o estado para indicar drift (necessidade de recriação)
 		if strings.Contains(err.Error(), "NotFound") {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("Erro ao ler Subnet na AWS", err.Error())
+		resp.Diagnostics.AddError("Erro ao ler recurso na AWS", err.Error())
 		return
 	}
 
@@ -206,6 +173,7 @@ func (r *managedSubnetResource) Read(ctx context.Context, req resource.ReadReque
 }
 
 func (r *managedSubnetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	// Delegar ao departamento para aplicar atualizações se necessário
 	var plan managedSubnetResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -213,27 +181,9 @@ func (r *managedSubnetResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	// Atualizações de metadados/tags
-	govConfig, err := governance.GetIPAMConfig(ctx, plan.ProjectName.ValueString(), plan.Tier.ValueString())
+	_, err := governance.ProvisionSubnet(ctx, r.client, plan.ProjectName.ValueString(), plan.Tier.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Erro de Governança no Update", err.Error())
-		return
-	}
-
-	tags := []awstypes.Tag{}
-	for k, v := range govConfig.DefaultTags {
-		tags = append(tags, awstypes.Tag{
-			Key:   aws.String(k),
-			Value: aws.String(v),
-		})
-	}
-
-	_, err = r.client.CreateTags(ctx, &ec2.CreateTagsInput{
-		Resources: []string{plan.ID.ValueString()},
-		Tags:      tags,
-	})
-	if err != nil {
-		resp.Diagnostics.AddError("Erro ao atualizar Tags na AWS", err.Error())
+		resp.Diagnostics.AddError("Erro ao atualizar recurso via Orquestração", err.Error())
 		return
 	}
 
@@ -254,7 +204,7 @@ func (r *managedSubnetResource) Delete(ctx context.Context, req resource.DeleteR
 	})
 	if err != nil {
 		if !strings.Contains(err.Error(), "NotFound") {
-			resp.Diagnostics.AddError("Erro ao deletar Subnet na AWS", err.Error())
+			resp.Diagnostics.AddError("Erro ao deletar recurso", err.Error())
 			return
 		}
 	}
