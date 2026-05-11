@@ -34,5 +34,6 @@ func (p *governorProvider) Resources(_ context.Context) []func() resource.Resour
 		NewVPCResource,
 		NewSubnetResource,
 		NewSecurityGroupResource,
+		NewManagedSubnetResource,
 	}
 }
