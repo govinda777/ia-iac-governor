@@ -3,6 +3,10 @@
 resource "aws_kms_key" "prod_key" {
   description             = "KMS key for production secrets"
   deletion_window_in_days = 10
+  tags = {
+    Project    = "Prod"
+    CostCenter = "Ops-202"
+  }
 }
 
 resource "aws_kms_key_policy" "prod_key_policy" {
