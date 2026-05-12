@@ -1,6 +1,10 @@
 # Account 1 (Development) - 111111111111
 
 resource "aws_iam_policy" "kms_dev_access" {
+  tags = {
+    Project    = "Dev"
+    CostCenter = "RND-303"
+  }
   name = "KMSDevAccess"
   policy = jsonencode({
     Version = "2012-10-17"

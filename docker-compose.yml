@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  floci:
+    image: floci-io/floci:latest
+    container_name: aws-emulator
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sqs,s3,iam
+      - DEBUG=1

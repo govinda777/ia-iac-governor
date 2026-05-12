@@ -15,49 +15,56 @@ class NetworkInventoryTool(BaseTool):
         cidrs = data.get('inventory', {}).get('available_cidrs', ["10.0.99.0/24"])
         return cidrs[0]
 
+import subprocess
+
 class GovernanceManagerTool(BaseTool):
     name: str = "GovernanceManagerTool"
     description: str = "Evaluates a Terraform Plan (as HCL or JSON) against all active governance layers (Cost, OPA, Firefly)."
 
     def _run(self, plan_data: str) -> str:
         manager = GovernanceManager(config_path="config/governance_config.yaml")
+        endpoint_url = os.getenv("AWS_ENDPOINT_URL", "http://localhost:4566")
+        env_vars = {
+            "AWS_ACCESS_KEY_ID": "test",
+            "AWS_SECRET_ACCESS_KEY": "test",
+            "AWS_DEFAULT_REGION": "us-east-1",
+            "TF_VAR_endpoint_url": endpoint_url
+        }
 
-        # Try to parse as JSON, otherwise treat as a mock plan generated from HCL
+        # Try to parse as JSON directly if it is already a plan_json
         try:
             plan_json = json.loads(plan_data)
+            # Carry over raw plan_data for text-based checks in providers if it's already a plan_json
+            # Assume no raw_hcl exists in this direct JSON scenario
         except json.JSONDecodeError:
-            # Simple heuristic to create a mock plan_json from HCL-like string
-            plan_json = {"resource_changes": []}
-            if "aws_instance" in plan_data:
-                plan_json["resource_changes"].append({"type": "aws_instance", "address": "aws_instance.example"})
-            if "aws_db_instance" in plan_data:
-                # Add mock data that passes some OPA checks but can fail others
-                plan_json["resource_changes"].append({
-                    "type": "aws_db_instance",
-                    "address": "aws_db_instance.example",
-                    "mode": "managed",
-                    "change": {
-                        "after": {
-                            "storage_encrypted": "storage_encrypted   = true" in plan_data,
-                            "publicly_accessible": "publicly_accessible = true" in plan_data,
-                            "tags": {
-                                "Project": "Alpha" if "Project" in plan_data else None,
-                                "CostCenter": "Research-01" if "CostCenter" in plan_data else None
-                            }
-                        }
-                    }
-                })
-            if "aws_s3_bucket" in plan_data:
-                plan_json["resource_changes"].append({"type": "aws_s3_bucket", "address": "aws_s3_bucket.example"})
-            if "aws_vpc" in plan_data:
-                plan_json["resource_changes"].append({"type": "aws_vpc", "address": "aws_vpc.example", "mode": "managed", "change": {"after": {}}})
-            if "aws_iam_role" in plan_data:
-                plan_json["resource_changes"].append({"type": "aws_iam_role", "address": "aws_iam_role.example", "mode": "managed", "change": {"after": {}}})
-            if "aws_subnet" in plan_data:
-                plan_json["resource_changes"].append({"type": "aws_subnet", "address": "aws_subnet.example", "mode": "managed", "change": {"after": {}}})
+            # It's HCL, so run real Terraform cycle against Floci
+            try:
+                # 1. Preparação: Injeta o provider.tf template de golden_paths/
+                with open("golden_paths/provider.tf", "r") as f:
+                    provider_template = f.read()
 
-            # Carry over raw plan_data for text-based checks in providers
-            plan_json["raw_hcl"] = plan_data
+                full_hcl = provider_template + "\n" + plan_data
+
+                with open("main.tf", "w") as f:
+                    f.write(full_hcl)
+
+                # 2. Ciclo Real Terraform (Forçando falha fatal se o binário falhar)
+                subprocess.run(["terraform", "init"], check=True, capture_output=True)
+
+                # Gera o plano real contra o container floci-io/floci
+                subprocess.run(["terraform", "plan", "-out=tfplan"],
+                               env={**os.environ, **env_vars},
+                               check=True, capture_output=True)
+
+                # 3. Extração do Estado Real (JSON)
+                result = subprocess.run(["terraform", "show", "-json", "tfplan"],
+                                        capture_output=True, text=True, check=True)
+                plan_json = json.loads(result.stdout)
+                plan_json["raw_hcl"] = plan_data # Carry over raw plan_data
+
+            except subprocess.CalledProcessError as e:
+                # Erro fatal: Sem mocks de fallback. O agente deve corrigir o HCL.
+                return f"VERDICT: CRITICAL FAILURE\n\nTerraform execution failed against Floci backend.\nDetails: {e.stderr.decode()}"
 
         try:
             results: List[ValidationResult] = manager.validate_plan(plan_json)
