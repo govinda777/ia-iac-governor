@@ -7,5 +7,5 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=sqs,s3,iam
+      - SERVICES=sqs,s3,iam,ec2,kms,sts
       - DEBUG=1

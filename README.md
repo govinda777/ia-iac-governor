@@ -1,107 +1,155 @@
 # IA-IaC Governor: Produto de Engenharia de Plataforma para Governança AI-Native
 
-O **IA-IaC Governor** não é apenas um script de validação, mas um produto completo de **Engenharia de Plataforma**. Ele fornece guardrails inteligentes e governança semântica para Infraestrutura como Código (IaC), utilizando Inteligência Artificial para auditar e automatizar a conformidade de forma plugável e contextual.
+O **IA-IaC Governor** é um produto de **Engenharia de Plataforma** que fornece guardrails inteligentes e governança semântica para Infraestrutura como Código (IaC). Utilizando Inteligência Artificial (Agentes) e políticas baseadas em código (OPA), a plataforma audita, corrige e garante a conformidade da sua infraestrutura de forma automatizada.
 
-Diferente de ferramentas tradicionais, o Governor analisa a **intenção** do código e aplica políticas dinâmicas, garantindo que a infraestrutura seja segura, econômica e resiliente por design.
-
----
-
-## 🎯 Casos de Uso e Problemas Resolvidos
-
-A plataforma valida cenários reais de governança através de múltiplas estratégias:
-
-| Categoria | Caso de Uso | Problema Resolvido | Estratégia de Governança |
-| :--- | :--- | :--- | :--- |
-| **PCI-DSS** | Criptografia Mandatória | Vazamento de dados em repouso por falta de criptografia | OPA + Análise de Plan JSON |
-| **Networking** | IPAM Automático | Conflitos de rede e sobreposição de CIDR | Custom Provider + API de Redes |
-| **FinOps** | Limite de Gasto ($100) | Orçamento estourado sem aviso prévio | OPA + Estimativa de Custo Real |
-| **Segurança** | Princípio do Privilégio Mínimo | IAM Roles excessivamente permissivas | Injeção Automática de Permissions Boundary |
-| **Dia 2** | Detecção de ClickOps | Alterações manuais inseguras via Console | Drift Detection via Agente Sentinel |
+Diferente de ferramentas tradicionais, o Governor analisa não só a sintaxe, mas a **intenção** do código, garantindo que a infraestrutura seja segura, econômica e resiliente por design.
 
 ---
 
-## 🏗️ Arquitetura e Stack Técnica
+## 🚀 Onboarding: Como uma nova equipe adota a plataforma
 
-A plataforma é construída sobre uma stack moderna e modular:
-
-*   **Núcleo IaC:** Terraform/OpenTofu.
-*   **Orquestração de IA:** CrewAI (Multi-agentes: Arquiteto, Auditor, Sentinel).
-*   **Motor de Políticas:** Open Policy Agent (OPA) com linguagem Rego.
-*   **Análise de Risco:** Cloud Security Graph para identificação de caminhos de ataque.
-
-> Para detalhes profundos sobre o funcionamento interno, veja o [**Relatório de Arquitetura**](ARCHITECTURE.md).
-
----
-
-## 🔄 Ciclo de Feedback Didático
-
-O Governor opera em um ciclo contínuo de validação e correção automática.
+O processo de adoção (*Onboarding*) foi desenhado para ser sem atrito, focando em trazer segurança sem travar o time de desenvolvimento. 
 
 ```mermaid
-graph TD
-    A[Código IaC / HCL] --> B{Parser & Mock Plan}
-    B --> C[Injeção de Contexto]
-    C --> D[Custom Providers / Rules / IPAM]
-    D --> E[AI Reasoner / Multi-Agentes]
-    E --> F{Decisão Approve/Reject}
-    F -- Reject --> G[Feedback Didático & Remediation Patch]
-    G --> A
-    F -- Approve --> H[Deploy Seguro]
-    H --> I[Monitoramento de Drift / Sentinel]
-    I -- Drift Detectado --> E
+journey
+    title Jornada de Onboarding de um Novo Time
+    section 1. Descoberta
+      Instalar plugin na pipeline (CI/CD): 5: Engenheiro DevOps
+      Ativar modo "Apenas Observação": 4: Engenheiro DevOps
+    section 2. Mapeamento
+      Agente Sentinel mapeia a nuvem: 5: IA-IaC Governor
+      Relatório de Ligações Tóxicas gerado: 4: IA-IaC Governor
+    section 3. Governança Ativa
+      Aprovação de Políticas Corporativas: 5: Time de Segurança
+      Modo de Bloqueio (Enforcing) ativado: 5: Engenheiro DevOps
+```
+
+1. **Instalação Plug & Play:** Apenas um container ou hook é adicionado na pipeline de CI/CD existente (GitHub Actions, GitLab CI, etc).
+2. **Modo Sombra (Shadow Mode):** No início, o Governor apenas escuta os `terraform plan`, avisando sobre vulnerabilidades sem bloquear deploys (evita atrito inicial).
+3. **Mapeamento de Baseline:** O Agente Sentinel varre a conta em busca de recursos legados e ligações tóxicas.
+4. **Governança Ativa (Enforcing):** Quando o time está maduro, o bloqueio de PRs é ativado e a IA passa a sugerir patches de correção automáticos.
+
+---
+
+## 🛡️ Fluxo Visual de Validação (Dia-a-Dia)
+
+Veja visualmente como a plataforma intercepta e valida uma alteração de infraestrutura feita por um desenvolvedor no dia-a-dia:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Dev as 👩‍💻 Desenvolvedor
+    participant CI as ⚙️ Esteira CI/CD
+    participant OPA as ⚖️ Motor OPA (Hard Policies)
+    participant AI as 🧠 Agentes de IA (Soft Policies)
+    
+    Dev->>CI: 1. Abre Pull Request (Código Terraform)
+    CI->>CI: 2. Roda `terraform plan -out=plan.binary`
+    CI->>OPA: 3. Envia o Plan convertido em JSON
+    
+    Note over OPA: Regras Estáticas (ex: Sem IP Público)
+    alt Violação Crítica (Hard Rule)
+        OPA-->>CI: ❌ Bloqueia Imediatamente
+    else OPA Aprova
+        OPA->>AI: 4. Repassa para análise Semântica
+    end
+    
+    Note over AI: Verifica Ligações Tóxicas e Contexto
+    alt Identificou Risco Complexo
+        AI-->>Dev: ❌ Rejeita e Comenta no PR
+        AI-->>Dev: 💡 Envia Patch HCL pronto para Auto-Correção
+    else Tudo Seguro
+        AI-->>CI: ✅ Aprova e Assina o Deploy
+        CI->>CI: 5. Roda `terraform apply` na Nuvem
+    end
 ```
 
 ---
 
-## 🛡️ Soberania de Infraestrutura
+## 🎯 Para que serve: O que consegue e o que NÃO consegue atender
 
-Através do uso de **Custom Providers** (ex: provedor `governor`), a plataforma implementa a Soberania de Infraestrutura.
-- Recursos sensíveis (VPC, IAM, Subnets) não são criados diretamente pelo desenvolvedor.
-- O Governor atua como um proxy que delega a criação para departamentos especialistas via API.
-- **Vantagem:** Regras corporativas são injetadas automaticamente na origem (Plan Modification).
+Para alinhar expectativas sobre o papel do IA-IaC Governor na sua arquitetura, veja claramente suas responsabilidades:
 
----
+### ✅ O que a plataforma CONSEGUE fazer
+* **Bloquear Deploys Inseguros:** Impede que vulnerabilidades ou más práticas cheguem em produção.
+* **Corrigir Código Automaticamente (Auto-Remediation):** Sugere ou gera o código exato em HCL/Terraform para corrigir uma violação detectada.
+* **Garantir Compliance Total:** Valida políticas corporativas ("Hard Policies" via OPA) e regras baseadas em contexto ("Soft Policies" via IA).
+* **Detectar "Drift" de Infraestrutura:** Monitora o ambiente real para garantir que o que está rodando bate com o código (via Agente Sentinel).
+* **Calcular Impacto Financeiro (FinOps):** Estima os custos do plano antes do deploy para evitar surpresas na fatura da nuvem.
 
-## 📊 Benchmarks de Certificação e Conformidade
-
-O IA-IaC Governor é mapeado diretamente contra os principais frameworks de segurança e conformidade do mercado.
-
-| Certificadora | Regra de Teste (Benchmark) | Como o IA-IaC Governor Resolve | Validação |
-| :--- | :--- | :--- | :--- |
-| **CIS AWS 1.4** | "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22" | A IA identifica a exposição, valida o risco via Security Graph e gera o patch de fechamento da porta. | **Pass** |
-| **AWS Foundational** | "S3 buckets should have block public access settings enabled" | O Auditor detecta a ausência de blocos de acesso público e o Arquiteto injeta o recurso `aws_s3_bucket_public_access_block`. | **Verified** |
-| **NIST SP 800-53** | "Encryption of data at rest for all storage services" | O motor plugável lê a política de criptografia mandatória e injeta o contexto de KMS no Custom Provider. | **Certified** |
-| **PCI-DSS & SOC2** | "Principle of Least Privilege for IAM Roles" | A plataforma injeta automaticamente `permissions_boundary` em todas as roles criadas via provedor `governor`. | **Compliant** |
-| **Custom Providers** | "Recurso Proprietário X deve ter Tag de Custo" | A IA consome a especificação do provider e valida a presença das tags `CostCenter` e `Project`. | **Verified** |
+### ❌ O que a plataforma NÃO consegue (e não deve) fazer
+* **Não é uma ferramenta de Deploy:** O Governor não executa `terraform apply` ou sobe a infraestrutura. Ele apenas audita e libera o caminho; o deploy final continua a cargo do seu CI/CD (Github Actions, Jenkins, etc).
+* **Não escreve o projeto do zero:** O desenvolvedor ainda precisa criar a arquitetura base (a lógica de negócios da infra). O Governor atua como um revisor/engenheiro sênior.
+* **Não substitui a Nuvem (AWS, GCP, Azure):** Ele valida as requisições para a nuvem, não hospeda recursos.
 
 ---
 
-## 🧩 Componentes Principais
+## 📊 Certificações de Segurança e Normas Atendidas
 
-1.  **Agente Arquiteto:** Gera código HCL conforme e aplica patches de auto-remediação.
-2.  **Agente Auditor:** Orquestra o `GovernanceManager` (Custo, OPA, Segurança).
-3.  **Agente Sentinel:** Monitora o estado real e detecta drifts ou "Combinações Tóxicas".
+Ao utilizar a plataforma de governança do IA-IaC Governor em sua pipeline, **sua infraestrutura e provisionamento estarão automaticamente homologados e em conformidade** com os principais benchmarks, certificações e normas do mercado. 
+
+As políticas (Rego + IA) cobrem as seguintes normas:
+
+| Certificadora / Norma | O que a plataforma garante (Como resolve) |
+| :--- | :--- |
+| **CIS AWS Foundations Benchmark** | Bloqueia configurações inseguras por padrão (ex: bloqueia SG com porta 22 aberta para `0.0.0.0/0`, garante logs do CloudTrail ativos). |
+| **NIST SP 800-53** | Garante criptografia de dados em repouso e em trânsito em todos os serviços (RDS, S3, EBS). Injeta regras de criptografia via OPA. |
+| **PCI-DSS** | Isola o ambiente de processamento de cartões e garante o *Princípio de Menor Privilégio* para IAM Roles, validando restrições de rede estritas. |
+| **SOC 2 (Type II)** | Mantém o registro (logs de auditoria) inalterável de todas as aprovações/rejeições de infraestrutura e previne mudanças manuais em produção (ClickOps). |
+| **ISO 27001** | Aplica gestão de riscos automatizada no deploy, validando configurações de acesso e políticas de retenção de dados. |
+| **HIPAA / GDPR / LGPD** | Impede exposição de dados sensíveis na internet (ex: buckets S3 públicos) e exige anonimização e regras de retenção em bancos de dados. |
 
 ---
 
-## 🚦 Como Executar
+## 🕸️ Mapeamento de Recursos e Prevenção de Ligações Tóxicas
+
+Com o tempo, infraestruturas na nuvem crescem e ficam difíceis de rastrear. O IA-IaC Governor utiliza o **Agente Sentinel** para atuar de forma inteligente criando um mapa dinâmico.
+
+* **Security Graph (Mapa de Recursos):** O Agente constrói um grafo de conhecimento da sua nuvem, mapeando como recursos se conectam (ex: qual Role tem acesso a qual Bucket S3, que está atrelado a qual EC2).
+* **Detecção de Ligações Tóxicas (Toxic Combinations):** Muitas vulnerabilidades não existem em um único recurso isolado, mas na combinação deles. O Governor identifica cenários tóxicos.
+  * *Exemplo:* Uma EC2 conectada à internet (com IP público) + Uma IAM Role atrelada a ela com permissões de administrador no S3. O agente alerta e bloqueia a "ligação tóxica", mesmo que os dois recursos isoladamente pareçam normais.
+* **Evolução Contínua:** Ao longo do tempo, o mapa evolui, monitorando *drifts* (desvios entre o Terraform e o Console AWS) e blindando o ambiente ativamente contra caminhos de ataque.
+
+---
+
+## 🏗️ Arquitetura e Ciclo de Feedback
+
+O fluxo da plataforma opera em um ciclo contínuo de validação e correção automática.
+
+```mermaid
+graph TD
+    A[Código IaC / HCL do PR] --> B{Parser JSON}
+    B --> C[Motor OPA - Políticas Rígidas]
+    C --> D[AI Reasoner - Multi-Agentes Arquiteto e Auditor]
+    D --> E{Decisão}
+    E -- Rejeitado --> F[Feedback Didático & Patch de Código Gerado]
+    F --> A
+    E -- Aprovado --> G[Deploy Seguro via CI/CD]
+    G --> H[Agente Sentinel - Mapeamento de Links Tóxicos]
+    H -- Risco Detectado no Tempo --> D
+```
+
+---
+
+## 🚦 Como Testar e Executar a POC
 
 ### 1. Pré-requisitos
 - Python 3.10+
-- [OPA (Open Policy Agent)](https://www.openpolicyagent.org/docs/latest/#1-download-opa) instalado no path.
+- [OPA (Open Policy Agent)](https://www.openpolicyagent.org/docs/latest/#1-download-opa) instalado no seu PATH.
 
 ### 2. Instalação
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Simulações
+### 3. Simulações Inclusas
+O repositório inclui cenários simulados para demonstração:
 - **POC Completa:** `python3 simulate_poc.py`
-- **Detecção de Drift:** `python3 simulate_drift.py`
+- **Detecção de Drift & Mapas:** `python3 simulate_drift.py`
 - **Soberania de Infra:** `python3 simulate_sovereignty.py`
 
 ---
 
-## 🤝 Contribuição e Caminhos Dourados (Golden Paths)
+## 🤝 Contribuição
 
-Encorajamos a contribuição de novos módulos e políticas. Veja nosso [**Guia de Contribuição**](CONTRIBUTING.md) para aprender sobre como criar novos Golden Paths e participar do projeto.
+Encorajamos a contribuição de novos módulos e políticas OPA. Veja nosso [**Guia de Contribuição**](CONTRIBUTING.md) para aprender sobre como criar novos Golden Paths e participar do projeto.
