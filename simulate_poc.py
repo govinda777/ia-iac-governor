@@ -9,7 +9,7 @@ def simulate_creation_flow():
     print("="*60)
 
     # 1. Intenção do Usuário
-    intent = "Preciso de um bucket S3 para logs e um banco de dados RDS."
+    intent = "Preciso de um bucket S3 para logs e um banco de dados RDS. Lembre-se de aplicar as tags obrigatórias da empresa (Project e CostCenter)."
     print(f"\n[Usuário]: {intent}")
 
     # 2. Agente Arquiteto em ação (Mock)
@@ -19,6 +19,10 @@ def simulate_creation_flow():
     initial_hcl = """
 resource "aws_s3_bucket" "logs" {
   bucket = "alpha-audit-logs"
+  tags = {
+    Project    = "Alpha"
+    CostCenter = "Research-01"
+  }
 }
 
 resource "aws_db_instance" "alpha_db" {
