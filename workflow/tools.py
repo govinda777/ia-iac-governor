@@ -17,11 +17,15 @@ class NetworkInventoryTool(BaseTool):
 
 import subprocess
 
+# Global cache for provider.tf content to avoid repeated I/O
+_PROVIDER_TEMPLATE_CACHE = None
+
 class GovernanceManagerTool(BaseTool):
     name: str = "GovernanceManagerTool"
     description: str = "Evaluates a Terraform Plan (as HCL or JSON) against all active governance layers (Cost, OPA, Firefly)."
 
     def _run(self, plan_data: str) -> str:
+        global _PROVIDER_TEMPLATE_CACHE
         manager = GovernanceManager(config_path="config/governance_config.yaml")
         endpoint_url = os.getenv("AWS_ENDPOINT_URL", "http://localhost:4566")
         env_vars = {
@@ -40,10 +44,11 @@ class GovernanceManagerTool(BaseTool):
             # It's HCL, so run real Terraform cycle against Floci
             try:
                 # 1. Preparação: Injeta o provider.tf template de golden_paths/
-                with open("golden_paths/provider.tf", "r") as f:
-                    provider_template = f.read()
+                if _PROVIDER_TEMPLATE_CACHE is None:
+                    with open("golden_paths/provider.tf", "r") as f:
+                        _PROVIDER_TEMPLATE_CACHE = f.read()
 
-                full_hcl = provider_template + "\n" + plan_data
+                full_hcl = _PROVIDER_TEMPLATE_CACHE + "\n" + plan_data
 
                 with open("main.tf", "w") as f:
                     f.write(full_hcl)
