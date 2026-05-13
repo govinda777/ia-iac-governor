@@ -548,12 +548,17 @@
             }
 
             // Re-render/Resize charts if they become visible to prevent rendering bugs
-            if (sectionId === 'overview' && chartInstances.cognitive) {
-                chartInstances.cognitive.resize();
-            }
-            if (sectionId === 'use-cases' && chartInstances.drift) {
-                chartInstances.drift.resize();
-            }
+            // Using requestAnimationFrame ensures the DOM update (making section visible) has occurred
+            requestAnimationFrame(() => {
+                if (sectionId === 'overview' && chartInstances.cognitive) {
+                    chartInstances.cognitive.resize();
+                    chartInstances.cognitive.update();
+                }
+                if (sectionId === 'use-cases' && chartInstances.drift) {
+                    chartInstances.drift.resize();
+                    chartInstances.drift.update();
+                }
+            });
 
             // Auto-load main README when entering docs
             if (sectionId === 'docs') {
