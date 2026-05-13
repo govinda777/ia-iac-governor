@@ -15,7 +15,8 @@ class OPAProvider(GovernanceProvider):
             "authorized_cidrs": authorized_cidrs
         }
 
-        temp_file = f"temp_input_{self.name}.json"
+        import uuid
+        temp_file = f"temp_input_{self.name}_{uuid.uuid4().hex}.json"
         with open(temp_file, 'w') as f:
             json.dump(input_data, f)
 
@@ -64,7 +65,10 @@ class OPAProvider(GovernanceProvider):
             status = "DENIED"
         finally:
             if os.path.exists(temp_file):
-                os.remove(temp_file)
+                try:
+                    os.remove(temp_file)
+                except OSError:
+                    pass
 
         return ValidationResult(
             provider=self.name,

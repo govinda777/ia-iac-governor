@@ -50,30 +50,44 @@ class GovernanceManagerTool(BaseTool):
 
                 full_hcl = _PROVIDER_TEMPLATE_CACHE + "\n" + plan_data
 
-                with open("main.tf", "w") as f:
-                    f.write(full_hcl)
+                original_main_tf = None
+                if os.path.exists("main.tf"):
+                    with open("main.tf", "r") as f:
+                        original_main_tf = f.read()
+                
+                try:
+                    with open("main.tf", "w") as f:
+                        f.write(full_hcl)
 
-                # 2. Ciclo Real Terraform (Forçando falha fatal se o binário falhar)
-                if not os.path.exists(".terraform"):
-                    subprocess.run(["terraform", "init"], check=True, capture_output=True)
-                else:
-                    # Retrieve root modules
-                    subprocess.run(["terraform", "get"], check=True, capture_output=True)
+                    # 2. Ciclo Real Terraform (Forçando falha fatal se o binário falhar)
+                    if not os.path.exists(".terraform"):
+                        subprocess.run(["terraform", "init"], check=True, capture_output=True)
+                    else:
+                        # Retrieve root modules
+                        subprocess.run(["terraform", "get"], check=True, capture_output=True)
 
-                # Gera o plano real contra o container floci-io/floci
-                subprocess.run(["terraform", "plan", "-out=tfplan"],
-                               env={**os.environ, **env_vars},
-                               check=True, capture_output=True)
+                    # Gera o plano real contra o container floci-io/floci
+                    subprocess.run(["terraform", "plan", "-out=tfplan"],
+                                   env={**os.environ, **env_vars},
+                                   check=True, capture_output=True)
 
-                # 3. Extração do Estado Real (JSON)
-                result = subprocess.run(["terraform", "show", "-json", "tfplan"],
-                                        capture_output=True, text=True, check=True)
-                plan_json = json.loads(result.stdout)
-                plan_json["raw_hcl"] = plan_data # Carry over raw plan_data
+                    # 3. Extração do Estado Real (JSON)
+                    result = subprocess.run(["terraform", "show", "-json", "tfplan"],
+                                            capture_output=True, text=True, check=True)
+                    plan_json = json.loads(result.stdout)
+                    plan_json["raw_hcl"] = plan_data # Carry over raw plan_data
+                finally:
+                    if original_main_tf is not None:
+                        with open("main.tf", "w") as f:
+                            f.write(original_main_tf)
+                    elif os.path.exists("main.tf"):
+                        os.remove("main.tf")
 
             except subprocess.CalledProcessError as e:
                 # Erro fatal: Sem mocks de fallback. O agente deve corrigir o HCL.
-                return f"VERDICT: CRITICAL FAILURE\n\nTerraform execution failed against Floci backend.\nDetails: {e.stderr.decode()}"
+                return f"VERDICT: CRITICAL FAILURE\n\nTerraform execution failed against Floci backend.\nDetails: {e.stderr.decode() if e.stderr else str(e)}"
+            except FileNotFoundError:
+                return "VERDICT: CRITICAL FAILURE\n\nTerraform CLI is not installed or not in PATH. Please install Terraform to run this tool."
 
         try:
             results: List[ValidationResult] = manager.validate_plan(plan_json)
