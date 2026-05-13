@@ -1,5 +1,4 @@
 import json
-import os
 import sys
 
 def simulate_drift_remediation():

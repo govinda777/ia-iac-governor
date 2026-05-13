@@ -1,5 +1,4 @@
 import json
-import os
 import sys
 from workflow.tools import NetworkInventoryTool, CloudCostEstimatorTool, OPAVerifierTool
 
