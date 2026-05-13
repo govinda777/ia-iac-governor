@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-from workflow.tools import OPAVerifierTool
 
 def simulate_drift_remediation():
     print("\n" + "="*60)
