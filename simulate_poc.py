@@ -43,6 +43,10 @@ resource "aws_db_instance" "alpha_db" {
     final_hcl = """
 resource "aws_s3_bucket" "logs" {
   bucket = "alpha-audit-logs"
+  tags = {
+    Project    = "Alpha"
+    CostCenter = "Research-01"
+  }
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "example" {

@@ -59,10 +59,9 @@ resource "aws_iam_role" "pagamentos_role" {
     import subprocess
 
     # Find OPA binary
-    opa_bin = 'opa'
-    try:
-        subprocess.run(['opa', 'version'], capture_output=True)
-    except FileNotFoundError:
+    import shutil
+    opa_bin = shutil.which('opa')
+    if not opa_bin:
         opa_bin = './opa'
 
     result = subprocess.run(
