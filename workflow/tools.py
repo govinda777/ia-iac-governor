@@ -54,7 +54,8 @@ class GovernanceManagerTool(BaseTool):
                     f.write(full_hcl)
 
                 # 2. Ciclo Real Terraform (Forçando falha fatal se o binário falhar)
-                subprocess.run(["terraform", "init"], check=True, capture_output=True)
+                if not os.path.exists(".terraform"):
+                    subprocess.run(["terraform", "init"], check=True, capture_output=True)
 
                 # Gera o plano real contra o container floci-io/floci
                 subprocess.run(["terraform", "plan", "-out=tfplan"],
