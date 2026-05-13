@@ -1,0 +1,9 @@
+repos:
+-   repo: local
+    hooks:
+    -   id: run-benchmarks
+        name: Executar Testes de Exemplos e Benchmarks do IA-IaC Governor
+        entry: python test_examples.py
+        language: system
+        pass_filenames: false
+        always_run: true

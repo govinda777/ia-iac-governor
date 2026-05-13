@@ -17,7 +17,7 @@ A plataforma integra ferramentas líderes de mercado com orquestração de IA de
 A plataforma implementa um framework de governança profunda, atuando em múltiplos estágios do ciclo de vida da infraestrutura:
 
 1.  **Camada Estática (Pre-commit/IDE):** Captura erros de sintaxe, violações de segurança óbvias e falta de tags obrigatórias antes mesmo do código ser enviado ao repositório.
-2.  **Camada de Plano (Integração CI):** A fase crítica de **Gating de Deploy**. O plano do Terraform (JSON) é analisado pelo OPA e pelos agentes de IA. Se houver violações de alta severidade, o deploy é bloqueado.
+2.  **Camada de Plano (Integração CI):** A fase crítica de **Gating de Deploy**. O plano do Terraform (JSON) é analisado pelo OPA para validação de atributos estruturais primários (Hard Policies). Em paralelo, a IA atua orquestrando e interpretando consultas estruturadas de *Graph Query Language* contra o modelo da infraestrutura, evitando "alucinações" por não atuar como uma mera leitora de sintaxe HCL. Se houver violações de alta severidade ou ligações tóxicas, o deploy é bloqueado.
 3.  **Camada de Estado (State Protection):** Garante a integridade e segurança do `terraform.tfstate`, validando que dados sensíveis estão criptografados e que o acesso ao estado é restrito.
 4.  **Monitoramento Contínuo (CSPM & Drift):** O agente **Sentinel** monitora o ambiente em tempo real para detectar **Drift** (desvios) e alterações manuais ("ClickOps"), disparando alertas ou remediações automáticas.
 
@@ -53,7 +53,7 @@ Um diferencial estratégico da plataforma é o conceito de **Soberania de Infrae
 
 O **Cloud Security Graph** funciona como o "Gêmeo Digital" da infraestrutura. Ele mapeia:
 
-*   **Nós (Nodes):** Ativos (EC2, S3, IAM Roles).
-*   **Arestas (Edges):** Relações de permissão, conectividade de rede e confiança.
+*   **Nós (Nodes):** Recursos físicos ou lógicos na nuvem (ex: VPC, Subnet, EC2, IAM Role, S3 Bucket, KMS Key, Lambda, Banco de Dados).
+*   **Arestas (Edges/Relacionamentos):** As conexões semânticas e operacionais entre os recursos (ex: `IN_SUBNET`, `ROUTES_TO`, `ATTACHES_TO`, `ASSUMES_ROLE`, `HAS_PERMISSION`, `DEPENDS_ON`).
 
 Isso permite identificar se um erro de configuração aparentemente simples pode ser explorado para alcançar um banco de dados sensível através de múltiplos saltos de permissão.

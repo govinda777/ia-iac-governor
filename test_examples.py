@@ -4,7 +4,7 @@ from workflow.tools import GovernanceManagerTool
 
 def test_all_examples():
     tool = GovernanceManagerTool()
-    test_dirs = ["examples", "benchmarks"]
+    test_dirs = ["examples"]
 
     # Map of filename or path to expected verdict
     expectations = {

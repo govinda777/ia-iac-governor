@@ -66,6 +66,22 @@ sequenceDiagram
 
 ---
 
+### ⚖️ O Papel de Cada Motor: Determinístico vs. IA e Grafos
+
+A estratégia de governança do Governor é dividida em dois domínios complementares:
+
+1. **O Domínio Determinístico (OPA, Checkov, tfsec):**
+   * **Foco:** Validação de atributos isolados e sintaxe.
+   * **Exemplos:** "A porta 22 está aberta?", "O bucket S3 tem versionamento?", "A tag `Owner` existe?".
+   * **Vantagem:** São ferramentas extremamente rápidas, exatas e baratas para regras inflexíveis (Hard Policies).
+
+2. **O Domínio de IA e Grafos (LLM + Infrastructure Graph):**
+   * **Foco:** Contexto, topologia e semântica. O LLM **não** avalia a sintaxe do Terraform (HCL).
+   * **Exemplos:** Entender que uma porta 22 aberta só é crítica se a máquina possui uma Role que escreve no KMS de Produção.
+   * **Vantagem:** O valor da IA está em interpretar topologias complexas, correlacionar eventos e explicar o "porquê" do risco em linguagem natural (Blast Radius e Combinações Tóxicas), baseando-se em queries executadas contra um Grafo de Infraestrutura determinístico.
+
+---
+
 ## 🎯 Para que serve: O que consegue e o que NÃO consegue atender
 
 Para alinhar expectativas sobre o papel do IA-IaC Governor na sua arquitetura, veja claramente suas responsabilidades:
