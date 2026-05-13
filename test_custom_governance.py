@@ -33,10 +33,9 @@ def test_opa_sovereignty_policy():
         json.dump(mock_plan, f)
 
     # Find OPA binary
-    opa_bin = 'opa'
-    try:
-        subprocess.run(['opa', 'version'], capture_output=True)
-    except FileNotFoundError:
+    import shutil
+    opa_bin = shutil.which('opa')
+    if not opa_bin:
         opa_bin = './opa'
 
     # Executar OPA

@@ -27,10 +27,9 @@ class OPAProvider(GovernanceProvider):
             policy_path = self.params.get("policy_path", "policies/compliance.rego")
 
             # Find OPA binary
-            opa_bin = 'opa'
-            try:
-                subprocess.run(['opa', 'version'], capture_output=True)
-            except FileNotFoundError:
+            import shutil
+            opa_bin = shutil.which('opa')
+            if not opa_bin:
                 opa_bin = './opa'
 
             result = subprocess.run(
