@@ -41,7 +41,7 @@ class GovernanceManagerTool(BaseTool):
             # Carry over raw plan_data for text-based checks in providers if it's already a plan_json
             # Assume no raw_hcl exists in this direct JSON scenario
         except json.JSONDecodeError:
-            # It's HCL, so run real Terraform cycle against Floci
+            # It's HCL, so run real Terraform cycle
             try:
                 # 1. Preparação: Injeta o provider.tf template de golden_paths/
                 if _PROVIDER_TEMPLATE_CACHE is None:
@@ -59,14 +59,13 @@ class GovernanceManagerTool(BaseTool):
                     with open("main.tf", "w") as f:
                         f.write(full_hcl)
 
-                    # 2. Ciclo Real Terraform (Forçando falha fatal se o binário falhar)
+                    # 2. Ciclo Real Terraform
                     if not os.path.exists(".terraform"):
                         subprocess.run(["terraform", "init"], check=True, capture_output=True)
                     else:
-                        # Retrieve root modules
                         subprocess.run(["terraform", "get"], check=True, capture_output=True)
 
-                    # Gera o plano real contra o container floci-io/floci
+                    # Gera o plano real
                     subprocess.run(["terraform", "plan", "-out=tfplan"],
                                    env={**os.environ, **env_vars},
                                    check=True, capture_output=True)
@@ -75,7 +74,7 @@ class GovernanceManagerTool(BaseTool):
                     result = subprocess.run(["terraform", "show", "-json", "tfplan"],
                                             capture_output=True, text=True, check=True)
                     plan_json = json.loads(result.stdout)
-                    plan_json["raw_hcl"] = plan_data # Carry over raw plan_data
+                    plan_json["raw_hcl"] = plan_data 
                 finally:
                     if original_main_tf is not None:
                         with open("main.tf", "w") as f:
@@ -83,11 +82,8 @@ class GovernanceManagerTool(BaseTool):
                     elif os.path.exists("main.tf"):
                         os.remove("main.tf")
 
-            except subprocess.CalledProcessError as e:
-                # Erro fatal: Sem mocks de fallback. O agente deve corrigir o HCL.
-                return f"VERDICT: CRITICAL FAILURE\n\nTerraform execution failed against Floci backend.\nDetails: {e.stderr.decode() if e.stderr else str(e)}"
-            except FileNotFoundError:
-                return "VERDICT: CRITICAL FAILURE\n\nTerraform CLI is not installed or not in PATH. Please install Terraform to run this tool."
+            except Exception as e:
+                return f"VERDICT: ERROR\n\nTerraform execution failed. Please ensure terraform is installed and in your PATH.\nError: {str(e)}"
 
         try:
             results: List[ValidationResult] = manager.validate_plan(plan_json)

@@ -1,7 +1,7 @@
 # Exemplo de infraestrutura governada utilizando o Custom Provider e Golden Path
 
 module "minha_app" {
-  source = "../golden_paths/standard-application"
+  source = "./golden_paths/standard-application"
 
   app_name         = "pagamentos-v2"
   environment      = "prod"

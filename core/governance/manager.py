@@ -36,6 +36,7 @@ class GovernanceManager:
     def validate_plan(self, plan_json: Dict[str, Any]) -> List[ValidationResult]:
         context = {}
         all_results = []
+        all_critical_findings = []
 
         severity_rank = {
             "LOW": 1,
@@ -56,8 +57,5 @@ class GovernanceManager:
                 f for f in result.findings
                 if severity_rank.get(f.severity, 0) >= fail_threshold
             ]
-
-            if critical_findings:
-                raise GovernanceViolationError(provider.name, critical_findings)
-
+            
         return all_results

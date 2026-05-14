@@ -133,17 +133,40 @@ REPORT_TEMPLATE = """
             font-size: 0.875rem;
         }
         
-        .diagram-section {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px dashed var(--border);
-        }
-        
         /* Mermaid styling for dark mode */
         .mermaid { background: transparent; padding: 1rem; border-radius: 8px; display: flex; justify-content: center; }
+
+        /* Neuron Glow Effects */
+        .mermaid .node rect { stroke-width: 2px; transition: all 0.3s; }
+        .mermaid .node.active rect { stroke: #3b82f6 !important; fill: rgba(59, 130, 246, 0.2) !important; filter: drop-shadow(0 0 8px #3b82f6); }
+        .mermaid .node.danger rect { stroke: #ef4444 !important; fill: rgba(239, 68, 68, 0.2) !important; filter: drop-shadow(0 0 12px #ef4444); }
+        .mermaid .node.success rect { stroke: #10b981 !important; fill: rgba(16, 185, 129, 0.2) !important; filter: drop-shadow(0 0 8px #10b981); }
+        
+        .brain-map-container {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            background: rgba(15, 23, 42, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        .brain-map-container::after {
+            content: "AGENT NEURAL MAP";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+        }
     </style>
     <script>
-        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'dark',
+            flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+        });
     </script>
 </head>
 <body>
@@ -225,9 +248,49 @@ REPORT_TEMPLATE = """
             <p>{{ test.metadata.description }}</p>
             {% endif %}
             
+            <div class="brain-map-container">
+                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
+                <div class="mermaid">
+                    graph LR
+                    Input[("HCL Plan")] --> L1["💰 Cost"]
+                    L1 --> L2["🛡️ OPA"]
+                    L2 --> L3["🔮 Firefly"]
+                    
+                    L3 --> Query{"Graph"}
+                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
+                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
+                    Analysis --> Verdict{"Verdict"}
+                    
+                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
+                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
+                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
+                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
+
+                    class Input active;
+                    {% if test.simulated %}
+                        class L1,L2,L3 active;
+                    {% endif %}
+                    {% if test.skipped %}
+                        class L1,L2,L3,Query,Verdict default;
+                    {% else %}
+                        class L1,L2,L3 active;
+                        class Query active;
+                        class SecurityGraph active;
+                        {% if test.passed %}
+                            class Analysis success;
+                            class Verdict success;
+                        {% else %}
+                            class Analysis danger;
+                            class Verdict danger;
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
             {% if test.metadata.attack_path %}
             <div class="diagram-section">
-                <h4>Attack Path Diagram</h4>
+                <h4>📊 Predictive Graph Context: Toxic Combination Found</h4>
+                <p style="color: var(--text-muted); font-size: 0.875rem;">Sub-graph isolated from schema/security_graph.json during neural activation:</p>
                 <div class="mermaid">
                     graph LR
                     {% set logic = test.metadata.attack_path.logic %}
@@ -235,6 +298,8 @@ REPORT_TEMPLATE = """
                         %% Convert Logic "Node(X) -> Edge(Y) -> Node(Z)" to Mermaid syntax
                         {% set logic = logic.replace('Node(', '').replace('Edge(', '|').replace(') ->', '| -->').replace(')', '') %}
                         {{ logic }}
+                        classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
+                        class A,B,C,D,E,F,G,H,I,J danger;
                     {% else %}
                         A[Start] --> B[End]
                     {% endif %}
