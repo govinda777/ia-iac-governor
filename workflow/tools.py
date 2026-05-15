@@ -50,52 +50,46 @@ class GovernanceManagerTool(BaseTool):
 
                 full_hcl = _PROVIDER_TEMPLATE_CACHE + "\n" + plan_data
 
-                original_main_tf = None
-                if os.path.exists("main.tf"):
-                    with open("main.tf", "r") as f:
-                        original_main_tf = f.read()
+                import tempfile
+                import shutil
                 
-                try:
-                    with open("main.tf", "w") as f:
+                # Use a unique temporary directory to avoid state collisions in parallel execution
+                with tempfile.TemporaryDirectory() as tempdir:
+                    # Provide local modules for relative paths
+                    if os.path.exists("golden_paths"):
+                        shutil.copytree("golden_paths", os.path.join(tempdir, "golden_paths"))
+
+                    main_tf_path = os.path.join(tempdir, "main.tf")
+                    tfplan_path = os.path.join(tempdir, "tfplan")
+
+                    with open(main_tf_path, "w") as f:
                         f.write(full_hcl)
 
                     # 2. Ciclo Real Terraform
                     try:
-                        subprocess.run(["terraform", "init"], check=True, capture_output=True)
-                    except subprocess.CalledProcessError:
-                        pass
-
-                    try:
-                        subprocess.run(["terraform", "init", "-upgrade"], check=True, capture_output=True)
+                        subprocess.run(["terraform", "init"],
+                                       cwd=tempdir,
+                                       env={**os.environ, **env_vars},
+                                       check=True, capture_output=True)
                     except subprocess.CalledProcessError:
                         pass
 
                     # Gera o plano real
                     res_plan = subprocess.run(["terraform", "plan", "-out=tfplan"],
+                                   cwd=tempdir,
                                    env={**os.environ, **env_vars},
                                    capture_output=True)
+
                     if res_plan.returncode != 0:
-                         if "Duplicate" in res_plan.stderr.decode() or "Inconsistent dependency lock file" in res_plan.stderr.decode() or "Invalid provider configuration" in res_plan.stderr.decode() or "No valid credential sources found" in res_plan.stderr.decode() or "failed to query available provider packages" in res_plan.stderr.decode().lower() or "timeout" in res_plan.stderr.decode().lower() or "plugin did not respond" in res_plan.stderr.decode().lower() or "could not retrieve the list of available versions" in res_plan.stderr.decode().lower():
-                             # GitHub Actions execution locally might complain about missing locks because it was evaluated in memory. Bypass these plan errors natively to fail in OPA execution
-                             pass
-                         else:
-                             raise Exception(f"Terraform plan failed. stdout: {res_plan.stdout.decode()} stderr: {res_plan.stderr.decode()}")
+                        raise Exception(f"Terraform plan failed. stdout: {res_plan.stdout.decode()} stderr: {res_plan.stderr.decode()}")
 
                     # 3. Extração do Estado Real (JSON)
-                    try:
-                        result = subprocess.run(["terraform", "show", "-json", "tfplan"],
-                                                capture_output=True, text=True, check=True)
-                        plan_json = json.loads(result.stdout)
-                        plan_json["raw_hcl"] = plan_data
-                    except subprocess.CalledProcessError:
-                         # fallback to an empty execution plan because tfplan file might be completely missing on CI error bypasses
-                         plan_json = {"resource_changes": [], "raw_hcl": plan_data}
-                finally:
-                    if original_main_tf is not None:
-                        with open("main.tf", "w") as f:
-                            f.write(original_main_tf)
-                    elif os.path.exists("main.tf"):
-                        os.remove("main.tf")
+                    result = subprocess.run(["terraform", "show", "-json", "tfplan"],
+                                            cwd=tempdir,
+                                            env={**os.environ, **env_vars},
+                                            capture_output=True, text=True, check=True)
+                    plan_json = json.loads(result.stdout)
+                    plan_json["raw_hcl"] = plan_data
 
             except Exception as e:
                 return f"VERDICT: ERROR\n\nTerraform execution failed. Please ensure terraform is installed and in your PATH.\nError: {str(e)}"
