@@ -9,7 +9,7 @@
 *Foco na resiliência do nosso provedor Go (Soberania de Infra) e testes da suíte E2E.*
 
 - [ ] **Estabilizar Integração E2E com Floci:** Garantir que o ciclo completo de validação do framework (`terraform init/plan/apply`) execute confiavelmente contra os endpoints do emulador Floci para validar nossos exemplos. *Critério de Aceite: `test_examples.py` rodando na pipeline sem falsos positivos de rede.*
-- [ ] **Expansão Estratégica do Custom Provider (`governor`):** Focar na maturidade dos componentes base existentes (VPC, Subnet, IAM, SG) com a possibilidade de uma expansão controlada (ex: `governor_managed_s3_bucket`) seguindo o padrão preditivo "Black Box" (onde o provider computa e protege recursos por padrão).
+- [ ] **Maturidade e Restrição de Escopo do Custom Provider (`governor`):** Focar exclusivamente na estabilidade dos componentes estruturais base (VPC, Subnet, IAM, SG) do nosso custom provider. É expressamente definido que **não haverá implementação de novos recursos no provedor Go**. Outros recursos necessários deverão ser implementados através de **Módulos Customizados (Terraform Modules)** seguindo o padrão "Black Box".
 - [ ] **Otimização do Parser HCL de Fallback:** Aprimorar o fallback customizado (mock `resource_changes`) para extração robusta de atributos críticos em avaliações preditivas. Lembrando que, por padrão, os exemplos são executados apontando para o Emulador Floci; caso um exemplo específico precise rodar contra a AWS real, isso deve estar explicitamente configurado no bloco do provider do respectivo teste.
 
 ## ⚖️ Épico 2: Motor Determinístico OPA & Validação de Exemplos
@@ -18,10 +18,11 @@
 - [ ] **Refatoração dos Bundles Rego (`policies/compliance.rego`):** Estruturar políticas por família de compliance (ex: NIST, CIS) de forma modular para validar os exemplos mais rápido. *Critério de Aceite: Pipeline do framework deve ser capaz de validar os exemplos de HCL com `opa exec` em tempo inferior a 2 segundos.*
 - [ ] **Governança Estrita em Mock Data:** Garantir que o motor OPA em nossos exemplos rejeite estritamente planos que não contenham tags obrigatórias, demonstrando o uso de "Hard Policies" bloqueadoras.
 
-## 🧠 Épico 3: Motor Preditivo de Segurança & Integração Opcional de LLM
-*Foco no nosso grande diferencial: A análise contextual e preditiva via Grafos e IA.*
+## 🧠 Épico 3: Motor Preditivo de Segurança & Loop de Evolução Rego
+*Foco no nosso grande diferencial: A análise contextual e preditiva via Grafos e IA iterativa.*
 
 - [ ] **Integração Dinâmica da LLM para Análise Preditiva Profunda:** Configurar a engine para que, quando uma chave de IA (ex: `GEMINI_API_KEY`) for detectada na pipeline ou ambiente local, o framework acione a IA para realizar predições complexas baseadas no Grafo, e não apenas regras estáticas.
+- [ ] **Loop Evolutivo Preditivo (Geração Automática de Políticas):** Ao passo que as infraestruturas são checadas, o agente preditivo deve analisar o contexto e, além de propor mudanças ao usuário via comentários/patches, ele deve iterar ativamente para **criar novas políticas Rego customizadas** caso perceba novos padrões de risco no Grafo, retroalimentando a governança estática.
 - [ ] **Evolução do Schema do Security Graph (`schema/security_graph.json`):** Mapear novos tipos de arestas (edges) para correlacionar problemas latentes de Rede com Identidade (ex: identificar proativamente um `CAN_ASSUME_ROLE_IN_VPC` antes do deploy).
 - [ ] **Framework de Benchmarks (Cross-Account Vulnerabilities):** Criar e rodar testes automatizados na pipeline validando cenários preditivos do diretório `/benchmarks` (ex: prever pontes tóxicas entre redes públicas e privadas usando correlação de dados).
 
