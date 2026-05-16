@@ -66,13 +66,18 @@ class GovernanceManagerTool(BaseTool):
                         f.write(full_hcl)
 
                     # 2. Ciclo Real Terraform
+                    # Remove any existing lock file that might have been copied or left over
+                    lock_file = os.path.join(tempdir, ".terraform.lock.hcl")
+                    if os.path.exists(lock_file):
+                        os.remove(lock_file)
+
                     try:
-                        subprocess.run(["terraform", "init"],
+                        subprocess.run(["terraform", "init", "-upgrade"],
                                        cwd=tempdir,
                                        env={**os.environ, **env_vars},
                                        check=True, capture_output=True)
-                    except subprocess.CalledProcessError:
-                        pass
+                    except subprocess.CalledProcessError as e:
+                        raise Exception(f"Terraform init failed. stdout: {e.stdout.decode()} stderr: {e.stderr.decode()}")
 
                     # Gera o plano real
                     res_plan = subprocess.run(["terraform", "plan", "-out=tfplan"],
