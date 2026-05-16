@@ -46,7 +46,7 @@ def test_graph_provider_toxic_combination(mock_schema):
             {"type": "aws_instance"},
             {"type": "aws_s3_bucket"}
         ],
-        "raw_hcl": "public" # Adding "public" string somewhere to trigger heuristic
+        "raw_hcl": "0.0.0.0/0" # Using exact CIDR for the heuristic
     }
     context = {}
 
