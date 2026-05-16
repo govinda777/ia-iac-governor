@@ -10,7 +10,7 @@
 
 - [ ] **Estabilizar Integração E2E com Floci:** Garantir que o ciclo completo de validação do framework (`terraform init/plan/apply`) execute confiavelmente contra os endpoints do emulador Floci para validar nossos exemplos. *Critério de Aceite: `test_examples.py` rodando na pipeline sem falsos positivos de rede.*
 - [ ] **Expansão Estratégica do Custom Provider (`governor`):** Focar na maturidade dos componentes base existentes (VPC, Subnet, IAM, SG) com a possibilidade de uma expansão controlada (ex: `governor_managed_s3_bucket`) seguindo o padrão preditivo "Black Box" (onde o provider computa e protege recursos por padrão).
-- [ ] **Otimização do Parser HCL de Fallback:** Aprimorar o fallback customizado (mock `resource_changes`) quando o `terraform init` falhar na pipeline (ex: por ausência de credenciais AWS nativas), garantindo extração robusta de atributos críticos para as avaliações preditivas.
+- [ ] **Otimização do Parser HCL de Fallback:** Aprimorar o fallback customizado (mock `resource_changes`) para extração robusta de atributos críticos em avaliações preditivas. Lembrando que, por padrão, os exemplos são executados apontando para o Emulador Floci; caso um exemplo específico precise rodar contra a AWS real, isso deve estar explicitamente configurado no bloco do provider do respectivo teste.
 
 ## ⚖️ Épico 2: Motor Determinístico OPA & Validação de Exemplos
 *Foco na análise estática rápida que compõe a primeira barreira do nosso framework de governança.*
