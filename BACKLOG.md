@@ -18,11 +18,12 @@
 - [ ] **Refatoração dos Bundles Rego (`policies/compliance.rego`):** Estruturar políticas por família de compliance (ex: NIST, CIS) de forma modular para validar os exemplos mais rápido. *Critério de Aceite: Pipeline do framework deve ser capaz de validar os exemplos de HCL com `opa exec` em tempo inferior a 2 segundos.*
 - [ ] **Governança Estrita em Mock Data:** Garantir que o motor OPA em nossos exemplos rejeite estritamente planos que não contenham tags obrigatórias, demonstrando o uso de "Hard Policies" bloqueadoras.
 
-## 🧠 Épico 3: Motor Preditivo de Segurança & Loop de Evolução Rego
-*Foco no nosso grande diferencial: A análise contextual e preditiva via Grafos e IA iterativa.*
+## 🧠 Épico 3: Motor Preditivo, Retrospectiva Contínua e Auto-Fortificação
+*Foco no nosso diferencial: A análise preditiva que evolui e fortifica o próprio framework baseada em inteligência retroativa.*
 
 - [ ] **Integração Dinâmica da LLM para Análise Preditiva Profunda:** Configurar a engine para que, quando uma chave de IA (ex: `GEMINI_API_KEY`) for detectada na pipeline ou ambiente local, o framework acione a IA para realizar predições complexas baseadas no Grafo, e não apenas regras estáticas.
-- [ ] **Loop Evolutivo Preditivo (Geração Automática de Políticas):** Ao passo que as infraestruturas são checadas, o agente preditivo deve analisar o contexto e, além de propor mudanças ao usuário via comentários/patches, ele deve iterar ativamente para **criar novas políticas Rego customizadas** caso perceba novos padrões de risco no Grafo, retroalimentando a governança estática.
+- [ ] **Retrospectiva Contínua e Auto-Fortificação do Framework:** Como ainda precisamos comprovar eficiência na detecção de falhas latentes, o agente preditivo deve se beneficiar do próprio ciclo de validação. A cada análise concluída de infraestrutura (nos exemplos/benchmarks), o agente deve rodar um loop de "retrospectiva" para identificar lacunas no processo atual de checagem.
+- [ ] **Geração Autônoma de PRs de Melhoria (Self-Improvement):** Quando o agente preditivo identificar que a fortificação do framework precisa evoluir, ele deve ser capaz de **criar e submeter Pull Requests automáticos no repositório do próprio projeto**, adicionando novas políticas Rego ou controles otimizados, garantindo que o framework se torne mais blindado a cada iteração.
 - [ ] **Evolução do Schema do Security Graph (`schema/security_graph.json`):** Mapear novos tipos de arestas (edges) para correlacionar problemas latentes de Rede com Identidade (ex: identificar proativamente um `CAN_ASSUME_ROLE_IN_VPC` antes do deploy).
 - [ ] **Framework de Benchmarks (Cross-Account Vulnerabilities):** Criar e rodar testes automatizados na pipeline validando cenários preditivos do diretório `/benchmarks` (ex: prever pontes tóxicas entre redes públicas e privadas usando correlação de dados).
 
@@ -36,6 +37,6 @@
 *Tarefas focadas na estabilidade e segurança "by design" do próprio framework.*
 
 - [ ] **Tratamento de Rate Limits e Timeouts da LLM:** O acionamento da análise preditiva avançada via IA DEVE possuir mecanismo de "Circuit Breaker". Caso a API (ex: Gemini) falhe, o framework deve falhar graciosamente e reverter (fallback) para a análise baseada apenas nas queries determinísticas do Grafo e OPA.
-- [ ] **Prevenção contra Injeção de Código (HCL Injection):** Sanitizar rigidamente o output preditivo gerado pela LLM antes de exibi-lo como sugestão de código (patch) nos logs ou relatórios, prevenindo injeções acidentais baseadas em HCL comprometido.
+- [ ] **Prevenção contra Injeção de Código (HCL Injection):** Sanitizar rigidamente o output preditivo gerado pela LLM antes de exibi-lo como sugestão de código (patch) ou ao criar auto-PRs, prevenindo injeções acidentais baseadas em HCL comprometido.
 - [ ] **State Integrity & Race Conditions em Testes:** Garantir que recursos simulados (como o estado do `governor_managed_security_group`) não sofram corrupção quando processos paralelos da pipeline rodarem os exemplos contra os emuladores.
 - [ ] **Fallback de Segurança (Fail-Safe):** Se o parser HCL interno falhar no meio de uma predição complexa, o framework deve adotar a política "Deny by Default" nas análises de risco.
