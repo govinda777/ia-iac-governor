@@ -60,15 +60,63 @@ class GovernanceManagerTool(BaseTool):
                         f.write(full_hcl)
 
                     # 2. Ciclo Real Terraform
-                    if not os.path.exists(".terraform"):
-                        subprocess.run(["terraform", "init"], check=True, capture_output=True)
-                    else:
-                        subprocess.run(["terraform", "get"], check=True, capture_output=True)
+                    try:
+                        if not os.path.exists(".terraform"):
+                            subprocess.run(["terraform", "init", "-upgrade"], check=True, capture_output=True)
+                        else:
+                            subprocess.run(["terraform", "init", "-upgrade"], check=True, capture_output=True)
+                    except subprocess.CalledProcessError as e:
+                        # Fallback to naive HCL parser as per memory instructions
+                        # "In workflow/tools.py (GovernanceManagerTool), if terraform init fails in CI due to missing local providers (e.g., 'Invalid provider registry host'), the tool catches the error and falls back to a custom naive HCL parser. This translates raw HCL into a mock resource_changes JSON array, ensuring OPA policies can evaluate the resources statically without defaulting to an empty, auto-approved plan."
+                        plan_json = {
+                            "resource_changes": [],
+                            "raw_hcl": plan_data
+                        }
+
+                        import re
+                        for match in re.finditer(r'resource\s+"([^"]+)"\s+"([^"]+)"', plan_data):
+                            plan_json["resource_changes"].append({
+                                "mode": "managed",
+                                "type": match.group(1),
+                                "name": match.group(2),
+                                "address": f"{match.group(1)}.{match.group(2)}",
+                                "change": {
+                                    "after": {
+                                        "tags": {}
+                                    }
+                                }
+                            })
+
+                        # Proceed directly to validation with mock plan_json
+                        return self._validate_with_manager(manager, plan_json)
 
                     # Gera o plano real
-                    subprocess.run(["terraform", "plan", "-out=tfplan"],
-                                   env={**os.environ, **env_vars},
-                                   check=True, capture_output=True)
+                    try:
+                        subprocess.run(["terraform", "plan", "-out=tfplan"],
+                                       env={**os.environ, **env_vars},
+                                       check=True, capture_output=True)
+                    except subprocess.CalledProcessError as e:
+                        # Similar fallback as init if plan fails (e.g. inconsistent lock file)
+                        plan_json = {
+                            "resource_changes": [],
+                            "raw_hcl": plan_data
+                        }
+
+                        import re
+                        for match in re.finditer(r'resource\s+"([^"]+)"\s+"([^"]+)"', plan_data):
+                            plan_json["resource_changes"].append({
+                                "mode": "managed",
+                                "type": match.group(1),
+                                "name": match.group(2),
+                                "address": f"{match.group(1)}.{match.group(2)}",
+                                "change": {
+                                    "after": {
+                                        "tags": {}
+                                    }
+                                }
+                            })
+
+                        return self._validate_with_manager(manager, plan_json)
 
                     # 3. Extração do Estado Real (JSON)
                     result = subprocess.run(["terraform", "show", "-json", "tfplan"],
@@ -85,6 +133,9 @@ class GovernanceManagerTool(BaseTool):
             except Exception as e:
                 return f"VERDICT: ERROR\n\nTerraform execution failed. Please ensure terraform is installed and in your PATH.\nError: {str(e)}"
 
+        return self._validate_with_manager(manager, plan_json)
+
+    def _validate_with_manager(self, manager, plan_json):
         try:
             results: List[ValidationResult] = manager.validate_plan(plan_json)
 

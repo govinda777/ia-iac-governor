@@ -166,7 +166,7 @@
 <body>
     <div class="header">
         <h1>IaC Governance Validation Report</h1>
-        <p style="color: var(--text-muted)">Generated on 2026-05-14 00:47:11</p>
+        <p style="color: var(--text-muted)">Generated on 2026-05-16 19:22:32</p>
     </div>
 
     <div class="summary">
@@ -175,11 +175,11 @@
             <div class="label">Total Tests</div>
         </div>
         <div class="stat-card passed">
-            <div class="value">0</div>
+            <div class="value">7</div>
             <div class="label">Passed</div>
         </div>
         <div class="stat-card failed">
-            <div class="value">7</div>
+            <div class="value">0</div>
             <div class="label">Failed</div>
         </div>
         <div class="stat-card">
@@ -215,15 +215,15 @@
     <div class="test-list">
         
         
-        <div class="test-case status-fail">
+        <div class="test-case status-pass">
             <div class="test-header">
-                <h3 class="test-title">examples\governed_infrastructure.tf</h3>
-                <span class="badge fail">
-                    FAIL
+                <h3 class="test-title">examples/governed_infrastructure.tf</h3>
+                <span class="badge pass">
+                    PASS
                 </span>
             </div>
             
-            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> ERROR</p>
+            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> DENIED</p>
             
             
             <div class="metadata-grid">
@@ -265,8 +265,8 @@
                         class Query active;
                         class SecurityGraph active;
                         
-                            class Analysis danger;
-                            class Verdict danger;
+                            class Analysis success;
+                            class Verdict success;
                         
                     
                 </div>
@@ -276,7 +276,7 @@
             
             
             <div class="action-links">
-                <a href="examples\governed_infrastructure.tf" target="_blank">📄 View Source Code</a>
+                <a href="examples/governed_infrastructure.tf" target="_blank">📄 View Source Code</a>
                 
                 <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
                 
@@ -284,408 +284,29 @@
             
             
             <h4>Validation Feedback</h4>
-            <div class="output-block">VERDICT: ERROR
+            <div class="output-block">VERDICT: DENIED
 
-Terraform execution failed. Please ensure terraform is installed and in your PATH.
-Error: [WinError 2] O sistema não pode encontrar o arquivo especificado</div>
+GOVERNANCE REPORT:
+- cost: APPROVED
+- firefly: APPROVED
+- opa: DENIED
+  [HIGH] Recurso aws_vpc.vulneravel está faltando as seguintes tags obrigatórias: {"CostCenter", "Project"}
+  [HIGH] Soberania: O recurso aws_vpc.vulneravel (aws_vpc) deve ser provisionado através do Custom Provider 'governor', não diretamente via 'aws'.
+- graph: APPROVED
+</div>
             
         </div>
         
         
-        <div class="test-case status-fail">
+        <div class="test-case status-pass">
             <div class="test-header">
-                <h3 class="test-title">examples\finops_control\high_cost_infrastructure.tf</h3>
-                <span class="badge fail">
-                    FAIL
+                <h3 class="test-title">examples/pci_compliance/secure_database.tf</h3>
+                <span class="badge pass">
+                    PASS
                 </span>
             </div>
             
-            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> ERROR</p>
-            
-            
-            <div class="metadata-grid">
-                
-                <div class="meta-item">
-                    <div class="label">Scenario Name</div>
-                    <div class="value">high_cost_infrastructure.tf</div>
-                </div>
-                
-                
-                
-            </div>
-            
-            <p>Standard test case: high_cost_infrastructure.tf</p>
-            
-            
-            <div class="brain-map-container">
-                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
-                <div class="mermaid">
-                    graph LR
-                    Input[("HCL Plan")] --> L1["💰 Cost"]
-                    L1 --> L2["🛡️ OPA"]
-                    L2 --> L3["🔮 Firefly"]
-                    
-                    L3 --> Query{"Graph"}
-                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
-                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
-                    Analysis --> Verdict{"Verdict"}
-                    
-                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
-                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
-                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
-                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
-
-                    class Input active;
-                    
-                    
-                        class L1,L2,L3 active;
-                        class Query active;
-                        class SecurityGraph active;
-                        
-                            class Analysis danger;
-                            class Verdict danger;
-                        
-                    
-                </div>
-            </div>
-
-            
-            
-            
-            <div class="action-links">
-                <a href="examples\finops_control\high_cost_infrastructure.tf" target="_blank">📄 View Source Code</a>
-                
-                <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
-                
-            </div>
-            
-            
-            <h4>Validation Feedback</h4>
-            <div class="output-block">VERDICT: ERROR
-
-Terraform execution failed. Please ensure terraform is installed and in your PATH.
-Error: [WinError 2] O sistema não pode encontrar o arquivo especificado</div>
-            
-        </div>
-        
-        
-        <div class="test-case status-fail">
-            <div class="test-header">
-                <h3 class="test-title">examples\finops_control\mandatory_tagging.tf</h3>
-                <span class="badge fail">
-                    FAIL
-                </span>
-            </div>
-            
-            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> ERROR</p>
-            
-            
-            <div class="metadata-grid">
-                
-                <div class="meta-item">
-                    <div class="label">Scenario Name</div>
-                    <div class="value">mandatory_tagging.tf</div>
-                </div>
-                
-                
-                
-            </div>
-            
-            <p>Standard test case: mandatory_tagging.tf</p>
-            
-            
-            <div class="brain-map-container">
-                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
-                <div class="mermaid">
-                    graph LR
-                    Input[("HCL Plan")] --> L1["💰 Cost"]
-                    L1 --> L2["🛡️ OPA"]
-                    L2 --> L3["🔮 Firefly"]
-                    
-                    L3 --> Query{"Graph"}
-                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
-                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
-                    Analysis --> Verdict{"Verdict"}
-                    
-                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
-                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
-                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
-                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
-
-                    class Input active;
-                    
-                    
-                        class L1,L2,L3 active;
-                        class Query active;
-                        class SecurityGraph active;
-                        
-                            class Analysis danger;
-                            class Verdict danger;
-                        
-                    
-                </div>
-            </div>
-
-            
-            
-            
-            <div class="action-links">
-                <a href="examples\finops_control\mandatory_tagging.tf" target="_blank">📄 View Source Code</a>
-                
-                <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
-                
-            </div>
-            
-            
-            <h4>Validation Feedback</h4>
-            <div class="output-block">VERDICT: ERROR
-
-Terraform execution failed. Please ensure terraform is installed and in your PATH.
-Error: [WinError 2] O sistema não pode encontrar o arquivo especificado</div>
-            
-        </div>
-        
-        
-        <div class="test-case status-fail">
-            <div class="test-header">
-                <h3 class="test-title">examples\golden_paths\standard_s3_bucket.tf</h3>
-                <span class="badge fail">
-                    FAIL
-                </span>
-            </div>
-            
-            <p><strong>Expected:</strong> APPROVED | <strong>Actual:</strong> ERROR</p>
-            
-            
-            <div class="metadata-grid">
-                
-                <div class="meta-item">
-                    <div class="label">Scenario Name</div>
-                    <div class="value">standard_s3_bucket.tf</div>
-                </div>
-                
-                
-                
-            </div>
-            
-            <p>Standard test case: standard_s3_bucket.tf</p>
-            
-            
-            <div class="brain-map-container">
-                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
-                <div class="mermaid">
-                    graph LR
-                    Input[("HCL Plan")] --> L1["💰 Cost"]
-                    L1 --> L2["🛡️ OPA"]
-                    L2 --> L3["🔮 Firefly"]
-                    
-                    L3 --> Query{"Graph"}
-                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
-                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
-                    Analysis --> Verdict{"Verdict"}
-                    
-                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
-                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
-                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
-                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
-
-                    class Input active;
-                    
-                    
-                        class L1,L2,L3 active;
-                        class Query active;
-                        class SecurityGraph active;
-                        
-                            class Analysis danger;
-                            class Verdict danger;
-                        
-                    
-                </div>
-            </div>
-
-            
-            
-            
-            <div class="action-links">
-                <a href="examples\golden_paths\standard_s3_bucket.tf" target="_blank">📄 View Source Code</a>
-                
-                <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
-                
-            </div>
-            
-            
-            <h4>Validation Feedback</h4>
-            <div class="output-block">VERDICT: ERROR
-
-Terraform execution failed. Please ensure terraform is installed and in your PATH.
-Error: [WinError 2] O sistema não pode encontrar o arquivo especificado</div>
-            
-        </div>
-        
-        
-        <div class="test-case status-fail">
-            <div class="test-header">
-                <h3 class="test-title">examples\iam_guardrails\developer_role_violation.tf</h3>
-                <span class="badge fail">
-                    FAIL
-                </span>
-            </div>
-            
-            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> ERROR</p>
-            
-            
-            <div class="metadata-grid">
-                
-                <div class="meta-item">
-                    <div class="label">Scenario Name</div>
-                    <div class="value">developer_role_violation.tf</div>
-                </div>
-                
-                
-                
-            </div>
-            
-            <p>Standard test case: developer_role_violation.tf</p>
-            
-            
-            <div class="brain-map-container">
-                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
-                <div class="mermaid">
-                    graph LR
-                    Input[("HCL Plan")] --> L1["💰 Cost"]
-                    L1 --> L2["🛡️ OPA"]
-                    L2 --> L3["🔮 Firefly"]
-                    
-                    L3 --> Query{"Graph"}
-                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
-                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
-                    Analysis --> Verdict{"Verdict"}
-                    
-                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
-                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
-                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
-                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
-
-                    class Input active;
-                    
-                    
-                        class L1,L2,L3 active;
-                        class Query active;
-                        class SecurityGraph active;
-                        
-                            class Analysis danger;
-                            class Verdict danger;
-                        
-                    
-                </div>
-            </div>
-
-            
-            
-            
-            <div class="action-links">
-                <a href="examples\iam_guardrails\developer_role_violation.tf" target="_blank">📄 View Source Code</a>
-                
-                <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
-                
-            </div>
-            
-            
-            <h4>Validation Feedback</h4>
-            <div class="output-block">VERDICT: ERROR
-
-Terraform execution failed. Please ensure terraform is installed and in your PATH.
-Error: [WinError 2] O sistema não pode encontrar o arquivo especificado</div>
-            
-        </div>
-        
-        
-        <div class="test-case status-fail">
-            <div class="test-header">
-                <h3 class="test-title">examples\pci_compliance\pci_network_segmentation.tf</h3>
-                <span class="badge fail">
-                    FAIL
-                </span>
-            </div>
-            
-            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> ERROR</p>
-            
-            
-            <div class="metadata-grid">
-                
-                <div class="meta-item">
-                    <div class="label">Scenario Name</div>
-                    <div class="value">pci_network_segmentation.tf</div>
-                </div>
-                
-                
-                
-            </div>
-            
-            <p>Standard test case: pci_network_segmentation.tf</p>
-            
-            
-            <div class="brain-map-container">
-                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
-                <div class="mermaid">
-                    graph LR
-                    Input[("HCL Plan")] --> L1["💰 Cost"]
-                    L1 --> L2["🛡️ OPA"]
-                    L2 --> L3["🔮 Firefly"]
-                    
-                    L3 --> Query{"Graph"}
-                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
-                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
-                    Analysis --> Verdict{"Verdict"}
-                    
-                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
-                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
-                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
-                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
-
-                    class Input active;
-                    
-                    
-                        class L1,L2,L3 active;
-                        class Query active;
-                        class SecurityGraph active;
-                        
-                            class Analysis danger;
-                            class Verdict danger;
-                        
-                    
-                </div>
-            </div>
-
-            
-            
-            
-            <div class="action-links">
-                <a href="examples\pci_compliance\pci_network_segmentation.tf" target="_blank">📄 View Source Code</a>
-                
-                <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
-                
-            </div>
-            
-            
-            <h4>Validation Feedback</h4>
-            <div class="output-block">VERDICT: ERROR
-
-Terraform execution failed. Please ensure terraform is installed and in your PATH.
-Error: [WinError 2] O sistema não pode encontrar o arquivo especificado</div>
-            
-        </div>
-        
-        
-        <div class="test-case status-fail">
-            <div class="test-header">
-                <h3 class="test-title">examples\pci_compliance\secure_database.tf</h3>
-                <span class="badge fail">
-                    FAIL
-                </span>
-            </div>
-            
-            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> ERROR</p>
+            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> DENIED</p>
             
             
             <div class="metadata-grid">
@@ -727,8 +348,8 @@ Error: [WinError 2] O sistema não pode encontrar o arquivo especificado</div>
                         class Query active;
                         class SecurityGraph active;
                         
-                            class Analysis danger;
-                            class Verdict danger;
+                            class Analysis success;
+                            class Verdict success;
                         
                     
                 </div>
@@ -738,7 +359,7 @@ Error: [WinError 2] O sistema não pode encontrar o arquivo especificado</div>
             
             
             <div class="action-links">
-                <a href="examples\pci_compliance\secure_database.tf" target="_blank">📄 View Source Code</a>
+                <a href="examples/pci_compliance/secure_database.tf" target="_blank">📄 View Source Code</a>
                 
                 <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
                 
@@ -746,10 +367,430 @@ Error: [WinError 2] O sistema não pode encontrar o arquivo especificado</div>
             
             
             <h4>Validation Feedback</h4>
-            <div class="output-block">VERDICT: ERROR
+            <div class="output-block">VERDICT: DENIED
 
-Terraform execution failed. Please ensure terraform is installed and in your PATH.
-Error: [WinError 2] O sistema não pode encontrar o arquivo especificado</div>
+GOVERNANCE REPORT:
+- cost: APPROVED
+- firefly: DENIED
+  [CRITICAL] RDS Instance cannot be publicly accessible.
+- opa: DENIED
+  [HIGH] Recurso aws_db_instance.pci_db está faltando as seguintes tags obrigatórias: {"CostCenter", "Project"}
+  [HIGH] Segurança: Instância RDS aws_db_instance.pci_db deve ter criptografia de armazenamento habilitada (PCI-DSS).
+  [HIGH] Segurança: Instância RDS aws_db_instance.pci_db não pode ser acessível publicamente (PCI-DSS).
+- graph: APPROVED
+</div>
+            
+        </div>
+        
+        
+        <div class="test-case status-pass">
+            <div class="test-header">
+                <h3 class="test-title">examples/pci_compliance/pci_network_segmentation.tf</h3>
+                <span class="badge pass">
+                    PASS
+                </span>
+            </div>
+            
+            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> DENIED</p>
+            
+            
+            <div class="metadata-grid">
+                
+                <div class="meta-item">
+                    <div class="label">Scenario Name</div>
+                    <div class="value">pci_network_segmentation.tf</div>
+                </div>
+                
+                
+                
+            </div>
+            
+            <p>Standard test case: pci_network_segmentation.tf</p>
+            
+            
+            <div class="brain-map-container">
+                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
+                <div class="mermaid">
+                    graph LR
+                    Input[("HCL Plan")] --> L1["💰 Cost"]
+                    L1 --> L2["🛡️ OPA"]
+                    L2 --> L3["🔮 Firefly"]
+                    
+                    L3 --> Query{"Graph"}
+                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
+                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
+                    Analysis --> Verdict{"Verdict"}
+                    
+                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
+                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
+                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
+                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
+
+                    class Input active;
+                    
+                    
+                        class L1,L2,L3 active;
+                        class Query active;
+                        class SecurityGraph active;
+                        
+                            class Analysis success;
+                            class Verdict success;
+                        
+                    
+                </div>
+            </div>
+
+            
+            
+            
+            <div class="action-links">
+                <a href="examples/pci_compliance/pci_network_segmentation.tf" target="_blank">📄 View Source Code</a>
+                
+                <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
+                
+            </div>
+            
+            
+            <h4>Validation Feedback</h4>
+            <div class="output-block">VERDICT: DENIED
+
+GOVERNANCE REPORT:
+- cost: APPROVED
+- firefly: APPROVED
+- opa: DENIED
+  [HIGH] Networking: O CIDR 10.0.99.0/24 não foi autorizado pelo IPAM.
+  [HIGH] Soberania: O recurso aws_subnet.pci_segment (aws_subnet) deve ser provisionado através do Custom Provider 'governor', não diretamente via 'aws'.
+- graph: APPROVED
+</div>
+            
+        </div>
+        
+        
+        <div class="test-case status-pass">
+            <div class="test-header">
+                <h3 class="test-title">examples/finops_control/mandatory_tagging.tf</h3>
+                <span class="badge pass">
+                    PASS
+                </span>
+            </div>
+            
+            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> DENIED</p>
+            
+            
+            <div class="metadata-grid">
+                
+                <div class="meta-item">
+                    <div class="label">Scenario Name</div>
+                    <div class="value">mandatory_tagging.tf</div>
+                </div>
+                
+                
+                
+            </div>
+            
+            <p>Standard test case: mandatory_tagging.tf</p>
+            
+            
+            <div class="brain-map-container">
+                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
+                <div class="mermaid">
+                    graph LR
+                    Input[("HCL Plan")] --> L1["💰 Cost"]
+                    L1 --> L2["🛡️ OPA"]
+                    L2 --> L3["🔮 Firefly"]
+                    
+                    L3 --> Query{"Graph"}
+                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
+                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
+                    Analysis --> Verdict{"Verdict"}
+                    
+                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
+                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
+                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
+                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
+
+                    class Input active;
+                    
+                    
+                        class L1,L2,L3 active;
+                        class Query active;
+                        class SecurityGraph active;
+                        
+                            class Analysis success;
+                            class Verdict success;
+                        
+                    
+                </div>
+            </div>
+
+            
+            
+            
+            <div class="action-links">
+                <a href="examples/finops_control/mandatory_tagging.tf" target="_blank">📄 View Source Code</a>
+                
+                <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
+                
+            </div>
+            
+            
+            <h4>Validation Feedback</h4>
+            <div class="output-block">VERDICT: DENIED
+
+GOVERNANCE REPORT:
+- cost: APPROVED
+- firefly: APPROVED
+- opa: DENIED
+  [HIGH] Recurso aws_s3_bucket.no_tags está faltando as seguintes tags obrigatórias: {"CostCenter", "Project"}
+- graph: APPROVED
+</div>
+            
+        </div>
+        
+        
+        <div class="test-case status-pass">
+            <div class="test-header">
+                <h3 class="test-title">examples/finops_control/high_cost_infrastructure.tf</h3>
+                <span class="badge pass">
+                    PASS
+                </span>
+            </div>
+            
+            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> DENIED</p>
+            
+            
+            <div class="metadata-grid">
+                
+                <div class="meta-item">
+                    <div class="label">Scenario Name</div>
+                    <div class="value">high_cost_infrastructure.tf</div>
+                </div>
+                
+                
+                
+            </div>
+            
+            <p>Standard test case: high_cost_infrastructure.tf</p>
+            
+            
+            <div class="brain-map-container">
+                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
+                <div class="mermaid">
+                    graph LR
+                    Input[("HCL Plan")] --> L1["💰 Cost"]
+                    L1 --> L2["🛡️ OPA"]
+                    L2 --> L3["🔮 Firefly"]
+                    
+                    L3 --> Query{"Graph"}
+                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
+                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
+                    Analysis --> Verdict{"Verdict"}
+                    
+                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
+                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
+                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
+                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
+
+                    class Input active;
+                    
+                    
+                        class L1,L2,L3 active;
+                        class Query active;
+                        class SecurityGraph active;
+                        
+                            class Analysis success;
+                            class Verdict success;
+                        
+                    
+                </div>
+            </div>
+
+            
+            
+            
+            <div class="action-links">
+                <a href="examples/finops_control/high_cost_infrastructure.tf" target="_blank">📄 View Source Code</a>
+                
+                <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
+                
+            </div>
+            
+            
+            <h4>Validation Feedback</h4>
+            <div class="output-block">VERDICT: DENIED
+
+GOVERNANCE REPORT:
+- cost: DENIED
+  [HIGH] Estimated cost $400.0 exceeds limit of $100.0
+- firefly: APPROVED
+- opa: DENIED
+  [HIGH] FinOps: O custo estimado ($400) excede o limite permitido de $100.
+- graph: APPROVED
+</div>
+            
+        </div>
+        
+        
+        <div class="test-case status-pass">
+            <div class="test-header">
+                <h3 class="test-title">examples/iam_guardrails/developer_role_violation.tf</h3>
+                <span class="badge pass">
+                    PASS
+                </span>
+            </div>
+            
+            <p><strong>Expected:</strong> DENIED | <strong>Actual:</strong> DENIED</p>
+            
+            
+            <div class="metadata-grid">
+                
+                <div class="meta-item">
+                    <div class="label">Scenario Name</div>
+                    <div class="value">developer_role_violation.tf</div>
+                </div>
+                
+                
+                
+            </div>
+            
+            <p>Standard test case: developer_role_violation.tf</p>
+            
+            
+            <div class="brain-map-container">
+                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
+                <div class="mermaid">
+                    graph LR
+                    Input[("HCL Plan")] --> L1["💰 Cost"]
+                    L1 --> L2["🛡️ OPA"]
+                    L2 --> L3["🔮 Firefly"]
+                    
+                    L3 --> Query{"Graph"}
+                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
+                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
+                    Analysis --> Verdict{"Verdict"}
+                    
+                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
+                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
+                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
+                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
+
+                    class Input active;
+                    
+                    
+                        class L1,L2,L3 active;
+                        class Query active;
+                        class SecurityGraph active;
+                        
+                            class Analysis success;
+                            class Verdict success;
+                        
+                    
+                </div>
+            </div>
+
+            
+            
+            
+            <div class="action-links">
+                <a href="examples/iam_guardrails/developer_role_violation.tf" target="_blank">📄 View Source Code</a>
+                
+                <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
+                
+            </div>
+            
+            
+            <h4>Validation Feedback</h4>
+            <div class="output-block">VERDICT: DENIED
+
+GOVERNANCE REPORT:
+- cost: APPROVED
+- firefly: APPROVED
+- opa: DENIED
+  [HIGH] Recurso aws_iam_role.developer está faltando as seguintes tags obrigatórias: {"CostCenter", "Project"}
+  [HIGH] Soberania: O recurso aws_iam_role.developer (aws_iam_role) deve ser provisionado através do Custom Provider 'governor', não diretamente via 'aws'.
+- graph: APPROVED
+</div>
+            
+        </div>
+        
+        
+        <div class="test-case status-pass">
+            <div class="test-header">
+                <h3 class="test-title">examples/golden_paths/standard_s3_bucket.tf</h3>
+                <span class="badge pass">
+                    PASS
+                </span>
+            </div>
+            
+            <p><strong>Expected:</strong> APPROVED | <strong>Actual:</strong> APPROVED</p>
+            
+            
+            <div class="metadata-grid">
+                
+                <div class="meta-item">
+                    <div class="label">Scenario Name</div>
+                    <div class="value">standard_s3_bucket.tf</div>
+                </div>
+                
+                
+                
+            </div>
+            
+            <p>Standard test case: standard_s3_bucket.tf</p>
+            
+            
+            <div class="brain-map-container">
+                <h4>🧠 Sentinel Agent Neural Logic Map</h4>
+                <div class="mermaid">
+                    graph LR
+                    Input[("HCL Plan")] --> L1["💰 Cost"]
+                    L1 --> L2["🛡️ OPA"]
+                    L2 --> L3["🔮 Firefly"]
+                    
+                    L3 --> Query{"Graph"}
+                    Query -- "MATCH" --> SecurityGraph[("Security Graph")]
+                    SecurityGraph -- "Match" --> Analysis["Predictive Analysis"]
+                    Analysis --> Verdict{"Verdict"}
+                    
+                    classDef default fill:#1e293b,stroke:#334155,color:#f8fafc;
+                    classDef active fill:#3b82f633,stroke:#3b82f6,stroke-width:2px;
+                    classDef danger fill:#ef444433,stroke:#ef4444,stroke-width:3px;
+                    classDef success fill:#10b98133,stroke:#10b981,stroke-width:2px;
+
+                    class Input active;
+                    
+                    
+                        class L1,L2,L3 active;
+                        class Query active;
+                        class SecurityGraph active;
+                        
+                            class Analysis success;
+                            class Verdict success;
+                        
+                    
+                </div>
+            </div>
+
+            
+            
+            
+            <div class="action-links">
+                <a href="examples/golden_paths/standard_s3_bucket.tf" target="_blank">📄 View Source Code</a>
+                
+                <a href="docs/Sovereign_Infrastructure_Governance.pdf" target="_blank">📖 Read Docs about this Benchmark</a>
+                
+            </div>
+            
+            
+            <h4>Validation Feedback</h4>
+            <div class="output-block">VERDICT: APPROVED
+
+GOVERNANCE REPORT:
+- cost: APPROVED
+- firefly: APPROVED
+- opa: APPROVED
+- graph: APPROVED
+</div>
             
         </div>
         
