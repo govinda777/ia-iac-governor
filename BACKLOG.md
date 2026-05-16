@@ -1,7 +1,7 @@
 # 📋 BACKLOG: IA-IaC Governor
 
 **Status do Produto:** Fase de consolidação do MVP (Minimum Viable Product).
-**Objetivo da Próxima Release:** Execução do fluxo E2E (End-to-End) com governança estática rigorosa na CI (SLA < 10s), análise semântica assíncrona baseada em Grafos via PR, testes automatizados contra o emulador Floci, e expansão controlada do provedor customizado.
+**Objetivo da Próxima Release:** Execução do fluxo E2E (End-to-End) com governança estática rigorosa na CI (SLA < 10s), análise semântica assíncrona baseada em Grafos via PR (com IA local para geração de patch), testes automatizados contra o emulador Floci, e expansão controlada do provedor customizado.
 
 ---
 
@@ -20,11 +20,11 @@
 - [ ] **Strict Block para Missing Tags:** Garantir que o OPA rejeite planos que não contenham as tags obrigatórias (`CostCenter`, `Project`) em recursos base, abortando a esteira IMEDIATAMENTE com código de erro correspondente.
 - [ ] **Integração de Relatórios no CI/CD:** Fazer com que as respostas do OPA sejam formatadas e renderizadas como anotações na interface do GitHub Actions / GitLab CI, com links para a documentação de correção.
 
-## 🧠 Épico 3: Motor Semântico & Grafo de Segurança (Async PR Bot)
-*Foco na readequação arquitetural: A LLM não bloqueia o CI; ela atua assincronamente como um revisor para explicar o contexto do Grafo e sugerir correções.*
+## 🧠 Épico 3: Motor Semântico & Grafo de Segurança (Async PR Bot & IA Local)
+*Foco na readequação arquitetural: A LLM não bloqueia o CI; a LLM será executada **localmente** para atuar como revisora e explicar o contexto do Grafo, gerando sugestões de código no PR.*
 
-- [ ] **Desacoplamento LLM da Esteira CI:** Extrair chamadas à API LiteLLM/CrewAI do caminho crítico do CI (pipeline principal). A esteira deve consultar *apenas* o Security Graph (determinístico) ou OPA para bloquear o deploy.
-- [ ] **Redefinição do Papel da LLM (Explanation & Patch Generation):** Utilizar a LLM estritamente como um *Async PR Revisor*. *Critério de Aceite: Após um alerta gerado pelo motor determinístico/Grafo, a LLM entra em ação assincronamente para redigir um comentário no PR explicando o Blast Radius e sugerindo um patch HCL.*
+- [ ] **Desacoplamento LLM da Esteira CI:** Extrair chamadas à API LiteLLM/CrewAI do caminho crítico do CI (pipeline principal). A esteira deve consultar *apenas* o Security Graph (determinístico) ou OPA para bloquear o deploy. A execução da LLM ficará restrita aos ambientes locais e chamadas assíncronas de bot.
+- [ ] **Redefinição do Papel da LLM (Explanation & Patch Generation):** Utilizar a LLM estritamente como um *Async PR Revisor* rodando localmente/fora de banda. *Critério de Aceite: Após um alerta gerado pelo motor determinístico/Grafo, a LLM é acionada localmente para analisar o erro e sugerir um patch HCL no Pull Request.*
 - [ ] **Evolução do Schema do Security Graph (`schema/security_graph.json`):** Mapear novos tipos de arestas (edges) para correlacionar problemas de Rede com Identidade (ex: `CAN_ASSUME_ROLE_IN_VPC`).
 - [ ] **Framework de Benchmarks (Cross-Account Vulnerabilities):** Ampliar cenários do diretório `/benchmarks` para comprovar que as queries no Grafo detectam pontes tóxicas entre público e privado sem falsos negativos.
 
@@ -37,7 +37,7 @@
 ## 🔒 Pontos Cegos & Edge Cases (Resiliência Operacional)
 *Tarefas focadas na estabilidade e segurança "by design" do sistema.*
 
-- [ ] **Tratamento de Rate Limits e Timeouts da LLM:** O job assíncrono que gera comentários de PR DEVE possuir mecanismo de "Circuit Breaker" e "Exponential Backoff", falhando graciosamente (exibindo apenas o alerta seco do Grafo) caso a API da LLM (OpenAI/Anthropic/etc) fique inoperante.
+- [ ] **Tratamento de Rate Limits e Timeouts da LLM:** O job assíncrono/local que gera comentários de PR DEVE possuir mecanismo de "Circuit Breaker" e "Exponential Backoff", falhando graciosamente (exibindo apenas o alerta seco do Grafo) caso a API da LLM (OpenAI/Anthropic/etc) fique inoperante.
 - [ ] **Prevenção contra Injeção de Código (HCL Injection):** Sanitizar rigidamente o output gerado pela LLM antes de enviá-lo como sugestão de código no GitHub/GitLab, prevenindo injeções acidentais ou prompts maliciosos inseridos no HCL.
 - [ ] **State Integrity & Race Conditions em Testes:** Garantir que o "ticket de aprovação" simulado no estado do `governor_managed_security_group` não sofra corrupção quando processos paralelos rodarem a suíte de testes contra os emuladores em Go/Floci.
 - [ ] **Fallback de Segurança (Fail-Safe):** Se o parser HCL interno (fallback) falhar ou o plano Terraform submetido vier vazio, o sistema deve falhar de forma fechada (Deny by Default) e não gerar uma "Aprovação Silenciosa".
