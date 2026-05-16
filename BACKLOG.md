@@ -16,7 +16,7 @@
 *Foco na análise estática rápida que compõe a primeira barreira do nosso framework de governança.*
 
 - [ ] **Refatoração dos Bundles Rego (`policies/compliance.rego`):** Estruturar políticas por família de compliance (ex: NIST, CIS) de forma modular para validar os exemplos mais rápido. *Critério de Aceite: Pipeline do framework deve ser capaz de validar os exemplos de HCL com `opa exec` em tempo inferior a 2 segundos.*
-- [ ] **Governança Estrita em Mock Data:** Garantir que o motor OPA em nossos exemplos rejeite estritamente planos que não contenham tags obrigatórias, demonstrando o uso de "Hard Policies" bloqueadoras.
+- [ ] **Governança Estrita em Testes de Benchmarks:** Garantir que o motor OPA, ao executar os exemplos no emulador Floci, rejeite estritamente planos que violem as "Hard Policies" (ex: ausência de tags obrigatórias), provando a resiliência estática do framework.
 
 ## 🧠 Épico 3: Motor Preditivo, Retrospectiva Contínua e Auto-Fortificação
 *Foco no nosso diferencial: A análise preditiva que evolui e fortifica o próprio framework baseada em inteligência retroativa.*
