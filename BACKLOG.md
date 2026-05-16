@@ -5,18 +5,18 @@
 
 ---
 
-## 🏗️ Épico 1: Core Engine do Framework & Custom Provider
-*Foco na resiliência do nosso provedor Go (Soberania de Infra) e testes da suíte E2E.*
+## 🏗️ Épico 1: Core Engine do Framework & Custom Providers
+*Foco na resiliência dos provedores (AWS e Kubernetes) e testes da suíte E2E.*
 
 - [ ] **Estabilizar Integração E2E com Floci:** Garantir que o ciclo completo de validação do framework (`terraform init/plan/apply`) execute confiavelmente contra os endpoints do emulador Floci para validar nossos exemplos. *Critério de Aceite: `test_examples.py` rodando na pipeline sem falsos positivos de rede.*
-- [ ] **Maturidade e Restrição de Escopo do Custom Provider (`governor`):** Focar exclusivamente na estabilidade dos componentes estruturais base (VPC, Subnet, IAM, SG) do nosso custom provider. É expressamente definido que **não haverá implementação de novos recursos no provedor Go**. Outros recursos necessários deverão ser implementados através de **Módulos Customizados (Terraform Modules)** seguindo o padrão "Black Box".
+- [ ] **Maturidade e Restrição de Escopo do Custom Provider AWS (`governor`):** Focar exclusivamente na estabilidade dos componentes estruturais base (VPC, Subnet, IAM, SG) do nosso custom provider. É expressamente definido que **não haverá implementação de novos recursos no provedor AWS em Go**. Outros recursos necessários deverão ser implementados através de **Módulos Customizados (Terraform Modules)** seguindo o padrão "Black Box".
+- [ ] **Implementação do Custom Provider para Helm:** Iniciar o desenvolvimento de um novo Custom Provider focado em orquestração Kubernetes (Helm). Este provider deve ser construído garantindo a coleta intensiva de **todos os dados de uso e telemetria**. Essa rastreabilidade é fundamental para alimentar a nossa engine preditiva com contexto sobre os artefatos implantados nos clusters.
 - [ ] **Otimização do Parser HCL de Fallback:** Aprimorar o fallback customizado (mock `resource_changes`) para extração robusta de atributos críticos em avaliações preditivas. Lembrando que, por padrão, os exemplos são executados apontando para o Emulador Floci; caso um exemplo específico precise rodar contra a AWS real, isso deve estar explicitamente configurado no bloco do provider do respectivo teste.
 
 ## ⚖️ Épico 2: Motor Determinístico OPA & Validação de Exemplos
 *Foco na análise estática rápida que compõe a primeira barreira do nosso framework de governança.*
 
 - [ ] **Refatoração dos Bundles Rego (`policies/compliance.rego`):** Estruturar políticas por família de compliance (ex: NIST, CIS) de forma modular para validar os exemplos mais rápido. *Critério de Aceite: Pipeline do framework deve ser capaz de validar os exemplos de HCL com `opa exec` em tempo inferior a 2 segundos.*
-- [ ] **Governança Estrita em Testes de Benchmarks:** Garantir que o motor OPA, ao executar os exemplos no emulador Floci, rejeite estritamente planos que violem as "Hard Policies" (ex: ausência de tags obrigatórias), provando a resiliência estática do framework.
 
 ## 🧠 Épico 3: Motor Preditivo, Retrospectiva Contínua e Auto-Fortificação
 *Foco no nosso diferencial: A análise preditiva que evolui e fortifica o próprio framework baseada em inteligência retroativa.*
