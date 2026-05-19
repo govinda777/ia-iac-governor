@@ -1,42 +1,57 @@
 # 📋 BACKLOG: IA-IaC Governor
 
 **Status do Produto:** Fase de consolidação do MVP (Minimum Viable Product).
-**Objetivo da Próxima Release:** Execução do fluxo E2E (End-to-End) do nosso **Framework de Segurança de Infraestrutura**. O foco principal é validar a nossa engine de **análise preditiva de risco** rodando os exemplos e benchmarks na CI. A LLM, quando configurada (`GEMINI_API_KEY` ou similar), deve atuar como um motor preditivo avançado que amplia a capacidade do framework de detectar combinações tóxicas complexas.
+**Objetivo da Próxima Release:** Executar o fluxo E2E (End-to-End) do nosso Framework de Segurança de Infraestrutura. O foco principal é consolidar os portões de segurança sequenciais: iniciando com análises determinísticas (OPA + Grafos) e finalizando com análises semânticas profundas via LLM.
 
 ---
 
-## 🏗️ Épico 1: Core Engine do Framework & Custom Providers
-*Foco na resiliência dos provedores (AWS e Kubernetes) e testes da suíte E2E.*
+## 🏗️ Infra & Core Engine
+*Foco na resiliência dos provedores (AWS e Kubernetes) e consolidação da suíte E2E.*
 
-- [ ] **Estabilizar Integração E2E com Floci:** Garantir que o ciclo completo de validação do framework (`terraform init/plan/apply`) execute confiavelmente contra os endpoints do emulador Floci para validar nossos exemplos. *Critério de Aceite: `test_examples.py` rodando na pipeline sem falsos positivos de rede.*
-- [ ] **Maturidade e Restrição de Escopo do Custom Provider AWS (`governor`):** Focar exclusivamente na estabilidade dos componentes estruturais base (VPC, Subnet, IAM, SG) do nosso custom provider. É expressamente definido que **não haverá implementação de novos recursos no provedor AWS em Go**. Outros recursos necessários deverão ser implementados através de **Módulos Customizados (Terraform Modules)** seguindo o padrão "Black Box".
-- [ ] **Implementação do Custom Provider para Helm:** Iniciar o desenvolvimento de um novo Custom Provider focado em orquestração Kubernetes (Helm). Este provider deve ser construído garantindo a coleta intensiva de **todos os dados de uso e telemetria**. Essa rastreabilidade é fundamental para alimentar a nossa engine preditiva com contexto sobre os artefatos implantados nos clusters.
-- [ ] **Otimização do Parser HCL de Fallback:** Aprimorar o fallback customizado (mock `resource_changes`) para extração robusta de atributos críticos em avaliações preditivas. Lembrando que, por padrão, os exemplos são executados apontando para o Emulador Floci; caso um exemplo específico precise rodar contra a AWS real, isso deve estar explicitamente configurado no bloco do provider do respectivo teste.
+- [ ] **Estabilizar Integração E2E com Floci:** Garantir que o ciclo completo (`terraform init/plan/apply`) execute de forma confiável contra os endpoints do emulador Floci.
+  - *Critério de Aceite:* O script `test_examples.py` roda na pipeline de CI em paralelo, sem falsos positivos de rede ou colisões de `.terraform` state (usando diretórios temporários isolados).
+- [ ] **Maturidade e Restrição de Escopo do Custom Provider AWS (`governor`):** O provedor Go focará estritamente na gestão de recursos core (VPC, Subnet, IAM, SG).
+  - *Critério de Aceite:* Sem adição de features fora do core em Go. Recursos adicionais devem seguir o padrão "Black Box" encapsulados em módulos Terraform (`golden_paths/`).
+- [ ] **Spike Técnico para o Helm Custom Provider:** Iniciar a arquitetura do provider para Kubernetes.
+  - *Critério de Aceite:* Documento técnico definindo o stack agnóstico que será utilizado para coletar telemetria e rastreabilidade dos artefatos no K8s, servindo de base para o Grafo de Segurança sem acoplamento precoce a fornecedores específicos.
+- [ ] **Otimização do Parser HCL de Fallback:** Refatorar o fallback regex do `GovernanceManagerTool` para situações onde o `terraform plan` falha na CI devido a problemas em dependências de ambiente.
+  - *Critério de Aceite:* O fallback gera mocks `resource_changes` de forma determinística, permitindo validação das policies OPA sem mascarar infraestrutura insegura.
 
-## ⚖️ Épico 2: Motor Determinístico OPA & Validação de Exemplos
-*Foco na análise estática rápida que compõe a primeira barreira do nosso framework de governança.*
+## 🔒 Segurança & Resiliência
+*Foco nos portões de segurança e fortificação contínua do framework.*
 
-- [ ] **Refatoração dos Bundles Rego (`policies/compliance.rego`):** Estruturar políticas por família de compliance (ex: NIST, CIS) de forma modular para validar os exemplos mais rápido. *Critério de Aceite: Pipeline do framework deve ser capaz de validar os exemplos de HCL com `opa exec` em tempo inferior a 2 segundos.*
+- [ ] **Refatoração dos Bundles Rego (Portão 1 - OPA):** Modularizar `policies/compliance.rego` para categorizar regras base (NIST, CIS, etc).
+  - *Critério de Aceite:* As validações de `tfplan` contra as regras do OPA são instantâneas, barrando problemas como IPs públicos e configurações inseguras imediatamente.
+- [ ] **Evolução do Security Graph (Portão 2 - Grafo Determinístico):** Mapear novas arestas no `schema/security_graph.json` para detectar complexidade topológica.
+  - *Critério de Aceite:* A plataforma identifica e bloqueia vetores de ataque cruzados documentados em `/benchmarks` (ex: Public-Private Bridge) baseada exclusivamente em sua correlação matemática.
+- [ ] **Integração Dinâmica da LLM (Portão 3 - Análise Semântica Preditiva):** Após validação OPA e Grafo, engajar o raciocínio semântico avançado da LLM para inferências de negócios sobre a arquitetura.
+  - *Critério de Aceite:* A IA atua na validação de intenção e gera propostas de remedição HCL. Falhas na API da IA (timeouts) disparam alertas, mas não quebram os vereditos já consolidados pelos portões estáticos (OPA/Grafo).
+- [ ] **Geração Autônoma de PRs de Melhoria (Self-Improvement):** O agente preditivo deve sugerir proativamente novas políticas (Rego) se detectar gaps no framework base após analisar um cluster vulnerável.
+  - *Critério de Aceite:* A IA abre Pull Requests no repositório. O processo **exige obrigatoriamente aprovação humana** no Code Review antes de realizar o merge no motor OPA.
 
-## 🧠 Épico 3: Motor Preditivo, Retrospectiva Contínua e Auto-Fortificação
-*Foco no nosso diferencial: A análise preditiva que evolui e fortifica o próprio framework baseada em inteligência retroativa.*
+## 🖥️ Frontend & UX
+*Foco na interface de consumo e usabilidade via `index.html`.*
 
-- [ ] **Integração Dinâmica da LLM para Análise Preditiva Profunda:** Configurar a engine para que, quando uma chave de IA (ex: `GEMINI_API_KEY`) for detectada na pipeline ou ambiente local, o framework acione a IA para realizar predições complexas baseadas no Grafo, e não apenas regras estáticas.
-- [ ] **Retrospectiva Contínua e Auto-Fortificação do Framework:** Como ainda precisamos comprovar eficiência na detecção de falhas latentes, o agente preditivo deve se beneficiar do próprio ciclo de validação. A cada análise concluída de infraestrutura (nos exemplos/benchmarks), o agente deve rodar um loop de "retrospectiva" para identificar lacunas no processo atual de checagem.
-- [ ] **Geração Autônoma de PRs de Melhoria (Self-Improvement):** Quando o agente preditivo identificar que a fortificação do framework precisa evoluir, ele deve ser capaz de **criar e submeter Pull Requests automáticos no repositório do próprio projeto**, adicionando novas políticas Rego ou controles otimizados, garantindo que o framework se torne mais blindado a cada iteração.
-- [ ] **Evolução do Schema do Security Graph (`schema/security_graph.json`):** Mapear novos tipos de arestas (edges) para correlacionar problemas latentes de Rede com Identidade (ex: identificar proativamente um `CAN_ASSUME_ROLE_IN_VPC` antes do deploy).
-- [ ] **Framework de Benchmarks (Cross-Account Vulnerabilities):** Criar e rodar testes automatizados na pipeline validando cenários preditivos do diretório `/benchmarks` (ex: prever pontes tóxicas entre redes públicas e privadas usando correlação de dados).
+- [ ] **Renderização de Dados e Relatórios de Risco:** Exibição robusta do estado da topologia da nuvem.
+  - *Critério de Aceite:* Componentes do Chart.js são criados/atualizados rigorosamente dentro de chamadas `requestAnimationFrame` para evitar dessincronia na renderização durante a navegação.
+- [ ] **Visualizador de Diffs e Patches de Auto-Correção:** Interface dedicada para os desenvolvedores revisarem o código proposto pela camada semântica.
+  - *Critério de Aceite:* Patches de correção do Terraform são apresentados em split-view (diff) com suporte a highlight da sintaxe HCL.
 
-## 🖥️ Épico 4: Plataforma SPA & Documentação
-*Foco na interface de consumo dos relatórios via `index.html` e usabilidade do framework.*
+## 📈 Monitoramento & Analytics
+*Métricas e telemetria interna do framework.*
 
-- [ ] **Renderização de Dados Preditivos e Drift em Tempo Real:** Conectar os relatórios gerados pelo framework ao frontend, garantindo que gráficos de risco (Chart.js) sejam desenhados corretamente através de `requestAnimationFrame`.
-- [ ] **Componente de Visualização de Remediações:** Adicionar suporte na SPA para exibir de forma intuitiva os diffs / patches gerados que corrigem vulnerabilidades preditas.
+- [ ] **Auditoria e Rastreabilidade de Decisões:** Armazenar todos os relatórios e decisões tomadas pelas diferentes camadas (OPA, Grafo e IA).
+  - *Critério de Aceite:* Os eventos de aprovação ou rejeição de um CI/CD recebem um `correlation_id`, facilitando respostas a auditorias de compliance (SOC 2).
+- [ ] **Guardrails Financeiros (Cost Provider):** Identificar variações financeiras bruscas no plano.
+  - *Critério de Aceite:* Recursos cloud propostos têm tag de custo aferida e são valorados contra o motor de custos base (ex: instâncias maiores que m5.4xlarge alertam alto custo projetado).
 
-## 🔒 Pontos Cegos & Edge Cases (Resiliência Operacional)
-*Tarefas focadas na estabilidade e segurança "by design" do próprio framework.*
+---
 
-- [ ] **Tratamento de Rate Limits e Timeouts da LLM:** O acionamento da análise preditiva avançada via IA DEVE possuir mecanismo de "Circuit Breaker". Caso a API (ex: Gemini) falhe, o framework deve falhar graciosamente e reverter (fallback) para a análise baseada apenas nas queries determinísticas do Grafo e OPA.
-- [ ] **Prevenção contra Injeção de Código (HCL Injection):** Sanitizar rigidamente o output preditivo gerado pela LLM antes de exibi-lo como sugestão de código (patch) ou ao criar auto-PRs, prevenindo injeções acidentais baseadas em HCL comprometido.
-- [ ] **State Integrity & Race Conditions em Testes:** Garantir que recursos simulados (como o estado do `governor_managed_security_group`) não sofram corrupção quando processos paralelos da pipeline rodarem os exemplos contra os emuladores.
-- [ ] **Fallback de Segurança (Fail-Safe):** Se o parser HCL interno falhar no meio de uma predição complexa, o framework deve adotar a política "Deny by Default" nas análises de risco.
+## 🕳️ Pontos Cegos & Edge Cases (Resiliência Operacional)
+*Tarefas direcionadas a tratamento de falhas, infraestrutura segura por design e limitações arquiteturais.*
+
+- [ ] **Prevenção contra Vazamento de Segredos na IA:** O `tfplan` gerado pode conter senhas no provisionamento (RDS, credenciais temporárias). É obrigatório implementar um *scrubber* regex antes do envio do payload para a LLM, garantindo data privacy.
+- [ ] **Mitigação de HCL Injection no Output da LLM:** O output preditivo gerado pela IA (em PRs ou patches) precisa passar por um parser de sintaxe e validação restrita, evitando que sugestões da IA injetem blocos mal-formatados ou comandos maliciosos no backend.
+- [ ] **Resiliência e Circuit Breaker para LLMs:** Redes externas falham. É necessário estipular políticas de retentativas. Em caso de *timeout* persistente da LLM no Portão 3, o CI não deve travar o deploy se os portões críticos 1 (OPA) e 2 (Grafo) estiverem "Verdes" e de acordo com o threshold aceito para o projeto.
+- [ ] **Integridade de Estado em Execuções Paralelas no CI:** Ferramentas rodando o `GovernanceManagerTool` em cenários concorrentes (vários PRs) podem corromper pastas `.terraform` se utilizarem o mesmo diretório. Deve-se reforçar a utilização exclusiva de diretórios temporários na execução isolada.
+- [ ] **Validação Estrita do Mock Preditivo HCL:** A regex customizada do fallback de IaC pode sofrer bypass acidental em certas sintaxes obscuras de HCL, aprovando uma policy por ausência do field. Um mecanismo de *Deny by Default* em parseamentos incompletos precisa ser ativado para evitar "Falsos Negativos" críticos.
