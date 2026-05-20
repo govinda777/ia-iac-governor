@@ -14,8 +14,8 @@
   - Restringir a atuação do provider em Go aos componentes estruturais base (VPC, Subnet, IAM, SG). Novos recursos deverão seguir a arquitetura de "Black Box" via Módulos Terraform.
   - *Critério de Aceite:* Não existem novos recursos da AWS implementados nativamente em Go no provedor; módulos delegados documentados em `golden_paths`.
 - [ ] **Implementação do Custom Provider para Helm (Kubernetes)**
-  - Estruturar a fundação de um novo custom provider para orquestração focada em Kubernetes (Helm), priorizando captura agressiva de metadados.
-  - *Critério de Aceite:* Suporte e testes unitários garantindo que os dados de telemetria dos deploys alimentem com sucesso o contexto da base preditiva.
+  - Estruturar a fundação de um novo custom provider para orquestração focada em Kubernetes (Helm), priorizando o gerenciamento de alterações feitas no cluster e a captura agressiva de metadados.
+  - *Critério de Aceite:* Suporte e testes unitários garantindo que possamos gerenciar melhor as alterações feitas no cluster e que os dados de telemetria alimentem com sucesso a base preditiva.
 - [ ] **Otimização do Parser HCL de Fallback e Cache**
   - Fortalecer o parser mock customizado para geração de `resource_changes` caso o binário Terraform falhe, garantindo performance pelo cache de `golden_paths/provider.tf`.
   - *Critério de Aceite:* Parser robusto contra blocos complexos no HCL; cobertura de testes em edge cases atingindo >90%.
@@ -40,6 +40,9 @@
 
 ## 📈 Monitoramento & Analytics
 
+- [ ] **Sessão de Evidências de Análise Preditiva (Graph vs OPA)**
+  - Criar uma sessão de exemplos completa mostrando o processo de checagem via graph e evidenciando a descoberta de vulnerabilidades complexas que o OPA não é capaz de encontrar.
+  - *Critério de Aceite:* Ter documentado e executável no pipeline um exemplo onde a engine preditiva bloqueia uma toxicidade que passou silenciosamente pelas regras do OPA.
 - [ ] **Integração Dinâmica de LLM Avançada (Análise Preditiva)**
   - Consolidar agentes autônomos (Arquiteto, Auditor) via CrewAI para atuar na pipeline na presença de credenciais (ex: `GEMINI_API_KEY`), correlacionando contexto extra além do estático.
   - *Critério de Aceite:* O motor emite predições logadas que não foram mapeadas de forma direta nas policies OPA.
