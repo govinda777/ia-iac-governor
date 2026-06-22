@@ -4,6 +4,7 @@ from core.governance.base import GovernanceProvider, ValidationResult, Governanc
 from core.governance.providers.cost_provider import CostProvider
 from core.governance.providers.opa_provider import OPAProvider
 from core.governance.providers.firefly_provider import FireflyProvider
+from core.governance.providers.graph_provider import GraphProvider
 
 class GovernanceManager:
     def __init__(self, config_path: str):
@@ -18,7 +19,8 @@ class GovernanceManager:
         provider_map: Dict[str, Type[GovernanceProvider]] = {
             "cost": CostProvider,
             "opa": OPAProvider,
-            "firefly": FireflyProvider
+            "firefly": FireflyProvider,
+            "graph": GraphProvider
         }
 
         for provider_cfg in config.get("providers", []):
